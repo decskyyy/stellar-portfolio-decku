@@ -23,16 +23,16 @@ const config: Config = {
           muted: "#A8A8A8", // A grey for secondary text.
           faint: "#686868", // A darker grey for placeholder text.
         },
-        // Admin panel colors remain unchanged.
+        // Admin panel tokens adapt to the selected light, dark, or system theme.
         admin: {
-          bg: "#F8FAFC",
-          panel: "#FFFFFF",
-          border: "#E2E8F0",
-          text: "#1E293B",
-          muted: "#64748B",
+          bg: "rgb(var(--admin-bg) / <alpha-value>)",
+          panel: "rgb(var(--admin-panel) / <alpha-value>)",
+          border: "rgb(var(--admin-border) / <alpha-value>)",
+          text: "rgb(var(--admin-text) / <alpha-value>)",
+          muted: "rgb(var(--admin-muted) / <alpha-value>)",
           accent: "#4F46E5",
           accentHover: "#4338CA",
-          danger: "#DC2626",
+          danger: "rgb(var(--admin-danger) / <alpha-value>)",
         },
       },
       fontFamily: {

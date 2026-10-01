@@ -54,7 +54,7 @@ export default async function AdminHome() {
               </div>
             )}
             <div className="min-w-0">
-              <span className="inline-flex rounded-full border border-admin-border bg-slate-50/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-admin-muted">
+              <span className="admin-inset inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-admin-muted">
                 Dashboard
               </span>
               <h1 className="mt-2 font-display text-2xl font-bold text-admin-text">
@@ -95,19 +95,19 @@ export default async function AdminHome() {
 
         {profile ? (
           <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-            <div className="rounded-2xl border border-admin-border bg-slate-50/70 p-4">
+            <div className="admin-inset rounded-2xl border p-4">
               <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Nama</dt>
               <dd className="mt-2 font-body text-sm text-admin-text">{profile.full_name || '—'}</dd>
             </div>
-            <div className="rounded-2xl border border-admin-border bg-slate-50/70 p-4">
+            <div className="admin-inset rounded-2xl border p-4">
               <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Jabatan</dt>
               <dd className="mt-2 font-body text-sm text-admin-text">{profile.role_title || '—'}</dd>
             </div>
-            <div className="sm:col-span-2 rounded-2xl border border-admin-border bg-slate-50/70 p-4">
+            <div className="admin-inset rounded-2xl border p-4 sm:col-span-2">
               <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Tagline</dt>
               <dd className="mt-2 font-body text-sm text-admin-text">{profile.tagline || '—'}</dd>
             </div>
-            <div className="sm:col-span-2 rounded-2xl border border-admin-border bg-slate-50/70 p-4">
+            <div className="admin-inset rounded-2xl border p-4 sm:col-span-2">
               <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Bio</dt>
               <dd className="mt-2 line-clamp-3 font-body text-sm leading-relaxed text-admin-muted">
                 {profile.bio || 'Belum diisi.'}
@@ -126,7 +126,7 @@ export default async function AdminHome() {
           <h2 className="font-display text-lg font-bold text-admin-text">Diubah terakhir</h2>
           <ul className="mt-4 space-y-3">
             {projects.slice(0, 5).map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-admin-border bg-slate-50/70 px-3 py-3 last:border-0 last:pb-0">
+              <li key={p.id} className="admin-inset flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-3 py-3 last:border-0 last:pb-0">
                 <span className="font-body text-sm text-admin-text">{p.title}</span>
                 <div className="flex items-center gap-4">
                   <StarRating value={p.rating} size={13} />

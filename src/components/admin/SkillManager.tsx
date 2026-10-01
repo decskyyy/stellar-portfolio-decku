@@ -20,7 +20,7 @@ function LevelPicker({ value, onChange }: { value: number; onChange: (n: number)
           onClick={() => onChange(n)}
           aria-label={`Level ${n}`}
           aria-pressed={value === n}
-          className={`h-2.5 w-6 rounded-full transition ${n <= value ? 'bg-admin-accent' : 'bg-slate-200 hover:bg-slate-300'}`}
+          className={`h-2.5 w-6 rounded-full transition ${n <= value ? 'bg-admin-accent' : 'admin-meter-off'}`}
         />
       ))}
     </div>

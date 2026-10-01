@@ -186,7 +186,7 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
             <span className="admin-chip">{drafts.length} perlu review</span>
           </div>
           {drafts.map((d) => (
-            <div key={d.key} className="admin-card border-amber-200 bg-amber-50/40">
+            <div key={d.key} className="admin-card admin-status-warning">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="admin-label">Jabatan</label>

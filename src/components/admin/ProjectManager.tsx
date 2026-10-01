@@ -269,7 +269,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                   const file = e.target.files?.[0];
                   if (file) uploadImage(file);
                 }}
-                className="w-full max-w-xs rounded-lg border border-admin-border bg-white px-3 py-2 font-body text-sm text-admin-muted
+                className="admin-input w-full max-w-xs px-3 py-2 font-body text-sm text-admin-muted
                            file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-admin-accent/10 file:px-3 file:py-1.5
                            file:font-body file:text-xs file:font-medium file:text-admin-accent"
               />
@@ -337,14 +337,14 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.image_url} alt="" className="h-16 w-24 shrink-0 rounded-lg border border-admin-border object-cover" />
                   ) : (
-                    <div className="h-16 w-24 shrink-0 rounded-lg border border-admin-border bg-slate-50" />
+                    <div className="admin-inset h-16 w-24 shrink-0 rounded-lg border" />
                   )}
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-display text-sm font-bold text-admin-text">{p.title}</h3>
                       {p.featured && (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                        <span className="admin-status-warning rounded-full px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide">
                           Unggulan
                         </span>
                       )}

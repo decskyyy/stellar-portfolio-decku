@@ -177,7 +177,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                     const f = e.target.files?.[0];
                     if (f) upload('avatar', f);
                   }}
-                  className="flex-1 rounded-lg border border-admin-border bg-white px-3 py-2 font-body text-sm text-admin-muted
+                  className="admin-input flex-1 rounded-lg px-3 py-2 font-body text-sm text-admin-muted
                              file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-admin-accent/10 file:px-3 file:py-1.5
                              file:font-body file:text-xs file:font-medium file:text-admin-accent"
                 />
@@ -193,7 +193,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                   const f = e.target.files?.[0];
                   if (f) upload('cv', f);
                 }}
-                className="w-full rounded-lg border border-admin-border bg-white px-3 py-2 font-body text-sm text-admin-muted
+                className="admin-input w-full px-3 py-2 font-body text-sm text-admin-muted
                            file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-admin-accent/10 file:px-3 file:py-1.5
                            file:font-body file:text-xs file:font-medium file:text-admin-accent"
               />

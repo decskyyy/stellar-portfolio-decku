@@ -75,7 +75,7 @@ export default function CvImport({
     <div className="admin-card border-dashed">
       <div className="mb-1 flex items-center gap-2">
         <h2 className="font-display text-lg font-bold text-admin-text">Deteksi otomatis dari CV</h2>
-        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide text-amber-700">
+        <span className="admin-status-warning rounded-full px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide">
           Beta, tanpa AI
         </span>
       </div>
@@ -92,13 +92,13 @@ export default function CvImport({
           const f = e.target.files?.[0];
           if (f) handleFile(f);
         }}
-        className="w-full max-w-sm rounded-lg border border-admin-border bg-white px-3 py-2 font-body text-sm text-admin-muted
+        className="admin-input w-full max-w-sm px-3 py-2 font-body text-sm text-admin-muted
                    file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-admin-accent/10 file:px-3 file:py-1.5
                    file:font-body file:text-xs file:font-medium file:text-admin-accent"
       />
 
       {loading && <p className="mt-3 font-body text-sm text-admin-muted">Membaca dan menganalisis PDF…</p>}
-      {error && <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-body text-sm text-admin-danger">{error}</p>}
+      {error && <p className="admin-status-error mt-3 rounded-lg border px-3 py-2 font-body text-sm">{error}</p>}
 
       {result && (
         <div className="mt-5 space-y-5 border-t border-admin-border pt-5">
@@ -120,7 +120,7 @@ export default function CvImport({
             ) : (
               <ul className="mt-2 space-y-1.5">
                 {result.experiences.map((exp, i) => (
-                  <li key={i} className="rounded-lg border border-admin-border bg-slate-50 px-3 py-2 font-body text-xs text-admin-muted">
+                  <li key={i} className="admin-inset rounded-lg border px-3 py-2 font-body text-xs text-admin-muted">
                     <span className="font-medium text-admin-text">{exp.role_title}</span> — {exp.company}
                     <span className="text-admin-muted/70"> ({exp.raw_date_text})</span>
                   </li>
@@ -145,7 +145,7 @@ export default function CvImport({
                 {result.skills.map((s) => (
                   <label
                     key={s}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-full border border-admin-border bg-white px-3 py-1 font-body text-xs text-admin-text"
+                    className="admin-inset flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 font-body text-xs text-admin-text"
                   >
                     <input
                       type="checkbox"
