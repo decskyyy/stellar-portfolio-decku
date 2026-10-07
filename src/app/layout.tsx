@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Orbitron, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -71,19 +72,28 @@ export default function RootLayout({
       className={`${orbitron.variable} ${space.variable} scroll-smooth`}
     >
       <body>
+        <Script src="/click-sound.js" strategy="beforeInteractive" />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-[0_0_32px_-6px_rgba(203,162,255,0.5)]"
         >
-          Lompat ke konten utama
+          Skip to main content
         </a>
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {
               try {
-                const theme = localStorage.getItem('admin-theme');
-                if (theme === 'light' || theme === 'dark' || theme === 'system') {
-                  document.documentElement.dataset.adminTheme = theme;
+                const adminTheme = localStorage.getItem('admin-theme');
+                if (adminTheme === 'light' || adminTheme === 'dark' || adminTheme === 'system') {
+                  document.documentElement.dataset.adminTheme = adminTheme;
+                }
+                const portfolioTheme = localStorage.getItem('portfolio-theme');
+                if (portfolioTheme === 'light' || portfolioTheme === 'dark') {
+                  if (window.location.pathname.startsWith('/admin')) {
+                    delete document.documentElement.dataset.siteTheme;
+                  } else {
+                    document.documentElement.dataset.siteTheme = portfolioTheme;
+                  }
                 }
               } catch {}
             })();`,

@@ -3,9 +3,10 @@
 import type { Profile, Skill } from "@/lib/types";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
+import { getPublicSkillCategory } from "@/lib/skill-category";
 
 const positions = ["top", "left", "right", "bottom"] as const;
-const focusAreas = ["Pengguna", "Aplikasi", "Sistem", "Operasional"];
+const focusAreas = ["Users", "Applications", "Systems", "Operations"];
 
 export default function SkillsVenn({
   profile,
@@ -21,7 +22,7 @@ export default function SkillsVenn({
   const touchPointer = useRef(false);
   const isOpen = expanded || hovered || focused;
   const savedCategories = [
-    ...new Set(skills.map((skill) => skill.category.trim()).filter(Boolean)),
+    ...new Set(skills.map(getPublicSkillCategory)),
   ].slice(0, positions.length);
   const categories =
     savedCategories.length > 0 ? savedCategories : focusAreas;
@@ -37,12 +38,12 @@ export default function SkillsVenn({
     <div
       id="skills"
       className="scroll-mt-24"
-      aria-label="Peta kategori keahlian"
+      aria-label="Skills category map"
     >
       <div
         className="skill-venn"
         role="group"
-        aria-label={`Kategori fokus: ${categories.join(", ")}. Arahkan kursor, fokuskan, atau tekan foto untuk membuka diagram.`}
+        aria-label={`Focus categories: ${categories.join(", ")}`}
       >
         {positions.map((position, index) => (
           <motion.div
@@ -98,8 +99,8 @@ export default function SkillsVenn({
           className="skill-venn-avatar"
           aria-label={
             isOpen
-              ? "Tutup diagram fokus"
-              : "Buka diagram fokus di sekitar foto profil"
+              ? "Close focus diagram"
+              : "Open focus diagram around profile photo"
           }
           aria-expanded={isOpen}
           initial={
@@ -141,9 +142,6 @@ export default function SkillsVenn({
           )}
         </motion.button>
       </div>
-      <p className="skill-venn-hint">
-        Arahkan kursor atau tekan foto untuk membuka kategori fokus.
-      </p>
     </div>
   );
 }

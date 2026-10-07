@@ -66,7 +66,7 @@ export default function ExperienceTimeline({ items }: { items: Experience[] }) {
                         onClick={() => setSelected(item)}
                         className="mt-2 inline-flex min-h-10 items-center text-sm font-medium text-accent-soft underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                       >
-                        Rincian peran
+                        Role details
                       </button>
                     )}
                   </div>

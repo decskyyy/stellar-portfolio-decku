@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
+import { inferSkillCategory } from '@/lib/skill-category';
 import type { Experience } from '@/lib/types';
 import type { ExperienceDraft } from '@/lib/cv-parser';
 import CvImport from './CvImport';
@@ -166,7 +167,12 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
   }
 
   async function addSkillsFromCv(skillNames: string[]) {
-    const rows = skillNames.map((name) => ({ name, category: 'Terdeteksi dari CV', level: 3, sort_order: 0 }));
+    const rows = skillNames.map((name) => ({
+      name,
+      category: inferSkillCategory(name),
+      level: 3,
+      sort_order: 0,
+    }));
     const { error } = await supabase.from('skills').insert(rows);
     if (error) {
       toast.error(`Sebagian/semua skill gagal ditambahkan: ${error.message}`);

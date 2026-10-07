@@ -46,7 +46,7 @@ export default function DetailModal({
         >
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           <motion.div
-            className="relative max-h-[min(720px,calc(100vh-2rem))] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#171717] p-6 text-ink shadow-2xl sm:p-8"
+            className="relative max-h-[min(720px,calc(100vh-2rem))] w-full max-w-2xl overflow-y-auto rounded-2xl border border-base-muted bg-base-surface p-6 text-ink shadow-2xl sm:p-8"
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -56,8 +56,8 @@ export default function DetailModal({
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-4 top-4 rounded-full p-2 text-ink-muted transition hover:bg-white/10 hover:text-ink"
-              aria-label="Tutup detail"
+              className="absolute right-4 top-4 rounded-full p-2 text-ink-muted transition hover:bg-base-muted hover:text-ink"
+              aria-label="Close details"
             >
               <X className="h-5 w-5" />
             </button>

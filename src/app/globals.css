@@ -2,9 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --site-base: 18 18 18;
+  --site-surface: 30 30 30;
+  --site-muted: 42 42 42;
+  --site-accent: 59 130 246;
+  --site-accent-soft: 96 165 250;
+  --site-accent-deep: 37 99 235;
+  --site-ink: 248 248 248;
+  --site-ink-muted: 168 168 168;
+  --site-ink-faint: 104 104 104;
+}
+
+html[data-site-theme="light"] {
+  color-scheme: light;
+  --site-base: 239 241 243;
+  --site-surface: 247 248 246;
+  --site-muted: 217 222 228;
+  --site-accent: 37 99 235;
+  --site-accent-soft: 29 78 216;
+  --site-accent-deep: 30 64 175;
+  --site-ink: 15 23 42;
+  --site-ink-muted: 71 85 105;
+  --site-ink-faint: 100 116 139;
+}
+
 /* A clean, modern foundation for the redesign. */
 body {
   @apply bg-base text-ink;
+  transition:
+    background-color 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.theme-transitioning body,
+html.theme-transitioning body *,
+html.theme-transitioning body *::before,
+html.theme-transitioning body *::after {
+  transition:
+    color 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    outline-color 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-decoration-color 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    fill 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    stroke 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 460ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
@@ -24,6 +67,128 @@ a {
 .portfolio-main {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   padding-bottom: 4rem;
+}
+
+.portfolio-main button,
+.portfolio-main a.inline-flex,
+.portfolio-main a[class*="min-h-"],
+.portfolio-main a[class*="rounded-"],
+.portfolio-navigation a,
+.mobile-bubble-trigger,
+.mobile-bubble-link {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 180ms ease,
+    box-shadow 220ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .portfolio-main button:not(:disabled):hover,
+  .portfolio-main a.inline-flex:hover,
+  .portfolio-main a[class*="min-h-"]:hover,
+  .portfolio-main a[class*="rounded-"]:hover,
+  .portfolio-navigation a:hover,
+  .mobile-bubble-trigger:hover,
+  .mobile-bubble-link:hover {
+    transform: translate3d(0, -2px, 0) scale(1.015);
+    filter: brightness(1.08);
+  }
+}
+
+.portfolio-main button:not(:disabled):active,
+.portfolio-main a.inline-flex:active,
+.portfolio-main a[class*="min-h-"]:active,
+.portfolio-main a[class*="rounded-"]:active,
+.portfolio-navigation a:active,
+.mobile-bubble-trigger:active,
+.mobile-bubble-link:active {
+  transform: translate3d(0, 0, 0) scale(0.97);
+  filter: brightness(1.12);
+  transition-duration: 80ms;
+}
+
+.mobile-bubble-backdrop {
+  border: 0;
+  background: rgba(4, 6, 12, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.mobile-bubble-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+html[data-site-theme="light"] .mobile-bubble-backdrop {
+  background: rgb(15 23 42 / 0.24);
+}
+
+html[data-site-theme="light"] .mobile-bubble-link {
+  border-color: rgb(148 163 184 / 0.65);
+  background: rgb(var(--site-surface) / 0.96);
+  color: rgb(30 41 59);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.14);
+}
+
+html[data-site-theme="light"] .mobile-bubble-link:hover,
+html[data-site-theme="light"] .mobile-bubble-link-active {
+  border-color: rgb(37 99 235 / 0.4);
+  background: rgb(219 234 254 / 0.98);
+  color: rgb(30 64 175);
+}
+
+.mobile-bubble-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  min-width: 9.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  background: rgba(24, 24, 27, 0.94);
+  padding: 0.65rem 1rem;
+  color: #d4d4d8;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 180ms ease,
+    box-shadow 220ms ease;
+}
+
+.mobile-bubble-link:hover,
+.mobile-bubble-link-active {
+  border-color: rgba(165, 180, 252, 0.4);
+  background: rgba(49, 46, 129, 0.92);
+  color: #eef2ff;
+}
+
+.mobile-bubble-link:focus-visible,
+.mobile-bubble-trigger:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 3px;
+}
+
+.mobile-bubble-trigger {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  right: calc(1rem + env(safe-area-inset-right));
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.mobile-bubble-nav {
+  bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  right: calc(1rem + env(safe-area-inset-right));
 }
 
 .portfolio-main > section {
@@ -242,6 +407,10 @@ a {
   outline-offset: 2px;
 }
 
+.dock-control:active {
+  transform: scale(0.97);
+}
+
 .dock-tooltip {
   position: absolute;
   bottom: calc(100% + 0.65rem);
@@ -277,6 +446,79 @@ a {
   background: rgba(255, 255, 255, 0.12);
 }
 
+html[data-site-theme="light"] .portfolio-main > section {
+  border-inline-color: rgb(148 163 184 / 0.28);
+  background-image:
+    linear-gradient(rgb(100 116 139 / 0.45), rgb(100 116 139 / 0.45)),
+    linear-gradient(rgb(100 116 139 / 0.45), rgb(100 116 139 / 0.45)),
+    linear-gradient(rgb(100 116 139 / 0.45), rgb(100 116 139 / 0.45)),
+    linear-gradient(rgb(100 116 139 / 0.45), rgb(100 116 139 / 0.45));
+}
+
+html[data-site-theme="light"] .portfolio-main > section::before {
+  border-color: rgb(148 163 184 / 0.4);
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 3px,
+    rgb(100 116 139 / 0.28) 3px,
+    rgb(100 116 139 / 0.28) 4px
+  );
+}
+
+html[data-site-theme="light"] .skill-venn-circle {
+  border-color: rgb(71 85 105 / 0.3);
+}
+
+html[data-site-theme="light"] .skill-venn-label {
+  color: rgb(30 41 59 / 0.86);
+}
+
+html[data-site-theme="light"] .skill-venn-hint {
+  color: rgb(71 85 105);
+}
+
+html[data-site-theme="light"] .skill-venn-avatar {
+  border-color: rgb(var(--site-base));
+  background: rgb(var(--site-muted));
+  color: rgb(15 23 42);
+}
+
+html[data-site-theme="light"] .live-info {
+  color: rgb(71 85 105);
+}
+
+html[data-site-theme="light"] .live-info-date {
+  color: rgb(100 116 139);
+}
+
+html[data-site-theme="light"] .portfolio-navigation {
+  border-color: rgb(148 163 184 / 0.55);
+  background: rgb(var(--site-surface) / 0.96);
+  box-shadow: 0 18px 38px rgb(15 23 42 / 0.13);
+}
+
+html[data-site-theme="light"] .dock-control {
+  color: rgb(71 85 105);
+}
+
+html[data-site-theme="light"] .dock-control:hover,
+html[data-site-theme="light"] .dock-control-active {
+  background: rgb(226 232 240);
+  color: rgb(15 23 42);
+}
+
+html[data-site-theme="light"] .dock-divider {
+  background: rgb(148 163 184 / 0.5);
+}
+
+html[data-site-theme="light"] .dock-tooltip {
+  border-color: rgb(203 213 225);
+  background: rgb(var(--site-surface) / 0.98);
+  color: rgb(15 23 42);
+  box-shadow: 0 8px 18px rgb(15 23 42 / 0.12);
+}
+
 @media (min-width: 1000px) {
   .live-info {
     display: block;
@@ -296,6 +538,32 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html.scroll-smooth {
     scroll-behavior: auto;
+  }
+
+  html.theme-transitioning body,
+  html.theme-transitioning body *,
+  html.theme-transitioning body *::before,
+  html.theme-transitioning body *::after,
+  body {
+    transition: none;
+  }
+
+  .portfolio-main button,
+  .portfolio-main a.inline-flex,
+  .portfolio-main a[class*="min-h-"],
+  .portfolio-main a[class*="rounded-"],
+  .portfolio-navigation a,
+  .mobile-bubble-trigger,
+  .mobile-bubble-link {
+    transition: none;
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (max-width: 767px) {
+  footer {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
   }
 }
 

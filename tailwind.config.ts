@@ -9,19 +9,19 @@ const config: Config = {
         // The 'base' colors are dark, but not black, to avoid harshness.
         // The 'accent' colors are vibrant but not distracting.
         base: {
-          DEFAULT: "#121212", // A very dark grey, softer than pure black.
-          surface: "#1E1E1E", // A slightly lighter grey for card backgrounds.
-          muted: "#2A2A2A", // A subtle grey for borders and dividers.
+          DEFAULT: "rgb(var(--site-base) / <alpha-value>)",
+          surface: "rgb(var(--site-surface) / <alpha-value>)",
+          muted: "rgb(var(--site-muted) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "#3B82F6", // A professional blue.
-          soft: "#60A5FA", // A lighter blue for hover states.
-          deep: "#2563EB", // A darker blue for active states.
+          DEFAULT: "rgb(var(--site-accent) / <alpha-value>)",
+          soft: "rgb(var(--site-accent-soft) / <alpha-value>)",
+          deep: "rgb(var(--site-accent-deep) / <alpha-value>)",
         },
         ink: {
-          DEFAULT: "#F8F8F8", // An off-white for primary text.
-          muted: "#A8A8A8", // A grey for secondary text.
-          faint: "#686868", // A darker grey for placeholder text.
+          DEFAULT: "rgb(var(--site-ink) / <alpha-value>)",
+          muted: "rgb(var(--site-ink-muted) / <alpha-value>)",
+          faint: "rgb(var(--site-ink-faint) / <alpha-value>)",
         },
         // Admin panel tokens adapt to the selected light, dark, or system theme.
         admin: {

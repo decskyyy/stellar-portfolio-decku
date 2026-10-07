@@ -9,39 +9,38 @@ import {
   Home,
   Mail,
   Menu,
+  Moon,
+  Sun,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Profile } from "@/lib/types";
 import { profileUrl } from "@/lib/urls";
 import { GithubIcon, LinkedinIcon } from "./BrandIcon";
 
 const links = [
-  { href: "/", label: "Beranda", icon: Home, route: "home" },
-  { href: "/projects", label: "Proyek", icon: Folder, route: "projects" },
+  { href: "/", label: "Home", icon: Home, route: "home" },
+  { href: "/projects", label: "Projects", icon: Folder, route: "projects" },
   {
     href: "/experience",
-    label: "Pengalaman",
+    label: "Experience",
     icon: Briefcase,
     route: "experience",
   },
-  { href: "/skills", label: "Keahlian", icon: Code, route: "skills" },
-  { href: "/contact", label: "Kontak", icon: Mail, route: "contact" },
+  { href: "/skills", label: "Skills", icon: Code, route: "skills" },
+  { href: "/contact", label: "Contact", icon: Mail, route: "contact" },
 ];
 
 const MotionLink = motion(Link);
 
-export default function Nav({
-  name,
-  profile,
-}: {
-  name: string;
-  profile: Profile;
-}) {
+export default function Nav({ profile }: { profile: Profile }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [siteTheme, setSiteTheme] = useState<"dark" | "light">("dark");
   const shouldReduceMotion = useReducedMotion();
+  const mobileTrigger = useRef<HTMLButtonElement>(null);
+  const firstMobileLink = useRef<HTMLAnchorElement>(null);
   const currentRoute = pathname.startsWith("/projects/")
     ? "projects"
     : links.find((link) => link.href === pathname)?.route;
@@ -68,67 +67,190 @@ export default function Nav({
   }, [pathname]);
 
   useEffect(() => {
+    setSiteTheme(
+      document.documentElement.dataset.siteTheme === "light" ? "light" : "dark",
+    );
+    const themeColor = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    if (themeColor) {
+      themeColor.content =
+        document.documentElement.dataset.siteTheme === "light"
+          ? "#eff1f3"
+          : "#121212";
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mobileOpen) firstMobileLink.current?.focus();
+  }, [mobileOpen]);
+
+  const themeTransitionTimeout = useRef<number | undefined>(undefined);
+
+  useEffect(
+    () => () => {
+      if (themeTransitionTimeout.current !== undefined) {
+        window.clearTimeout(themeTransitionTimeout.current);
+      }
+      document.documentElement.classList.remove("theme-transitioning");
+    },
+    [],
+  );
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileOpen(false);
+    mobileTrigger.current?.focus();
+  }, []);
+
+  const toggleSiteTheme = () => {
+    const nextTheme = siteTheme === "dark" ? "light" : "dark";
+    if (themeTransitionTimeout.current !== undefined) {
+      window.clearTimeout(themeTransitionTimeout.current);
+    }
+    if (!shouldReduceMotion) {
+      document.documentElement.classList.add("theme-transitioning");
+      themeTransitionTimeout.current = window.setTimeout(() => {
+        document.documentElement.classList.remove("theme-transitioning");
+        themeTransitionTimeout.current = undefined;
+      }, 480);
+    }
+    document.documentElement.dataset.siteTheme = nextTheme;
+    const themeColor = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    if (themeColor) themeColor.content = nextTheme === "light" ? "#eff1f3" : "#121212";
+    try {
+      window.localStorage.setItem("portfolio-theme", nextTheme);
+    } catch (error) {
+      console.warn("Could not save the portfolio theme preference.", error);
+    }
+    setSiteTheme(nextTheme);
+  };
+
+  useEffect(() => {
     if (!mobileOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileOpen(false);
+      if (event.key === "Escape") {
+        closeMobileMenu();
+      }
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [mobileOpen]);
+  }, [closeMobileMenu, mobileOpen]);
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-base-muted/70 bg-base/90 backdrop-blur-md md:hidden">
-        <div className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="min-w-0 rounded-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
-          >
-            <span className="block truncate text-sm font-semibold">{name}</span>
-          </Link>
-
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
-            onClick={() => setMobileOpen((open) => !open)}
-            aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-navigation"
-          >
-            {mobileOpen ? <X /> : <Menu />}
-          </button>
-        </div>
+      <AnimatePresence>
         {mobileOpen && (
-          <nav
-            id="mobile-navigation"
-            aria-label="Navigasi utama"
-            className="border-t border-base-muted/70 px-4 py-3"
-          >
-            <div className="mx-auto flex max-w-3xl flex-col gap-1 sm:px-2">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={
-                    currentRoute === link.route ? "page" : undefined
-                  }
-                  className={`min-h-11 rounded-lg px-3 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft ${
-                    currentRoute === link.route
-                      ? "text-ink"
-                      : "text-ink-muted"
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close navigation menu"
+              className="mobile-bubble-backdrop fixed inset-0 z-40 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.18 }}
+              onClick={closeMobileMenu}
+            />
+            <motion.nav
+              id="mobile-navigation"
+              aria-label="Main navigation"
+              className="mobile-bubble-nav fixed bottom-[5.25rem] right-4 z-50 flex flex-col-reverse gap-2 md:hidden"
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {links.map(({ href, label, icon: Icon, route }, index) => (
+                <MotionLink
+                  key={href}
+                  ref={index === 0 ? firstMobileLink : undefined}
+                  href={href}
+                  aria-current={currentRoute === route ? "page" : undefined}
+                  className={`mobile-bubble-link ${
+                    currentRoute === route ? "mobile-bubble-link-active" : ""
                   }`}
+                  initial={
+                    shouldReduceMotion ? false : { opacity: 0, y: 12, scale: 0.8 }
+                  }
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={
+                    shouldReduceMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, y: 8, scale: 0.86 }
+                  }
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.2,
+                    delay: shouldReduceMotion ? 0 : index * 0.035,
+                  }}
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
+                  onClick={closeMobileMenu}
                 >
-                  {link.label}
-                </Link>
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  <span>{label}</span>
+                </MotionLink>
               ))}
-            </div>
-          </nav>
+              <motion.button
+                type="button"
+                className="mobile-bubble-link"
+                onClick={toggleSiteTheme}
+                aria-pressed={siteTheme === "light"}
+                aria-label={`Switch to ${siteTheme === "dark" ? "light" : "dark"} mode`}
+                title={`Switch to ${siteTheme === "dark" ? "light" : "dark"} mode`}
+                initial={
+                  shouldReduceMotion ? false : { opacity: 0, y: 12, scale: 0.8 }
+                }
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, y: 8, scale: 0.86 }
+                }
+                transition={{
+                  duration: shouldReduceMotion ? 0 : 0.2,
+                  delay: shouldReduceMotion ? 0 : links.length * 0.035,
+                }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
+              >
+                {siteTheme === "dark" ? (
+                  <Sun className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span>{siteTheme === "dark" ? "Light mode" : "Dark mode"}</span>
+              </motion.button>
+            </motion.nav>
+          </>
         )}
-      </header>
+      </AnimatePresence>
+
+      <button
+        ref={mobileTrigger}
+        type="button"
+        className="mobile-bubble-trigger fixed bottom-4 right-4 z-50 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent text-white shadow-[0_12px_32px_rgba(0,0,0,0.4)] ring-1 ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft focus-visible:ring-offset-2 focus-visible:ring-offset-base md:hidden"
+        onClick={() => {
+          if (mobileOpen) {
+            closeMobileMenu();
+          } else {
+            setMobileOpen(true);
+          }
+        }}
+        aria-label={mobileOpen ? "Close menu" : "Open navigation menu"}
+        aria-expanded={mobileOpen}
+        aria-controls="mobile-navigation"
+      >
+        <motion.span
+          className="grid place-items-center"
+          animate={{ rotate: mobileOpen ? 90 : 0 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.18 }}
+        >
+          {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+        </motion.span>
+      </button>
 
       <motion.nav
-        aria-label="Navigasi utama"
-        className="fixed bottom-4 left-1/2 z-40 hidden items-center gap-1 rounded-2xl border border-white/10 bg-base/90 p-1.5 shadow-2xl backdrop-blur-xl md:flex"
+        aria-label="Main navigation"
+        className="portfolio-navigation fixed bottom-4 left-1/2 z-40 hidden -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-base/90 p-1.5 shadow-2xl backdrop-blur-xl md:flex"
         initial={
           shouldReduceMotion
             ? false
@@ -141,7 +263,7 @@ export default function Nav({
           ease: [0.22, 1, 0.36, 1],
         }}
       >
-        {links.map(({ href, label, icon: Icon, route }, index) => (
+        {links.map(({ href, label, icon: Icon, route }) => (
           <MotionLink
             key={href}
             href={href}
@@ -149,23 +271,66 @@ export default function Nav({
             aria-current={currentRoute === route ? "page" : undefined}
             title={label}
             className={`dock-control group ${currentRoute === route ? "dock-control-active" : ""}`}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: shouldReduceMotion ? 0 : 0.3,
-              delay: shouldReduceMotion ? 0 : 0.4 + index * 0.06,
-            }}
-            whileHover={shouldReduceMotion ? undefined : { y: -5, scale: 1.12 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+            whileHover={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    y: -2,
+                    scale: 1.04,
+                    transition: { type: "spring", stiffness: 520, damping: 30 },
+                  }
+            }
+            whileTap={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    scale: 0.97,
+                    transition: { type: "spring", stiffness: 650, damping: 32 },
+                  }
+            }
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
             <span className="dock-tooltip">{label}</span>
           </MotionLink>
         ))}
+        <motion.button
+          type="button"
+          className="dock-control group"
+          onClick={toggleSiteTheme}
+          aria-pressed={siteTheme === "light"}
+          aria-label={`Switch to ${siteTheme === "dark" ? "light" : "dark"} mode`}
+          title={`Switch to ${siteTheme === "dark" ? "light" : "dark"} mode`}
+          whileHover={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  y: -2,
+                  scale: 1.04,
+                  transition: { type: "spring", stiffness: 520, damping: 30 },
+                }
+          }
+          whileTap={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  scale: 0.97,
+                  transition: { type: "spring", stiffness: 650, damping: 32 },
+                }
+          }
+        >
+          {siteTheme === "dark" ? (
+            <Sun className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <Moon className="h-4 w-4" aria-hidden="true" />
+          )}
+          <span className="dock-tooltip">
+            {siteTheme === "dark" ? "Light mode" : "Dark mode"}
+          </span>
+        </motion.button>
         {socialLinks.length > 0 && (
           <>
             <span className="dock-divider" aria-hidden="true" />
-            {socialLinks.map(({ href, label, icon: Icon }, index) => (
+            {socialLinks.map(({ href, label, icon: Icon }) => (
               <MotionLink
                 key={label}
                 href={href ?? "/"}
@@ -173,14 +338,23 @@ export default function Nav({
                 target={label === "Email" ? undefined : "_blank"}
                 rel={label === "Email" ? undefined : "noopener noreferrer"}
                 className="dock-control group"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: shouldReduceMotion ? 0 : 0.3,
-                  delay: shouldReduceMotion ? 0 : 0.72 + index * 0.06,
-                }}
-                whileHover={shouldReduceMotion ? undefined : { y: -5, scale: 1.12 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+                whileHover={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        y: -2,
+                        scale: 1.04,
+                        transition: { type: "spring", stiffness: 520, damping: 30 },
+                      }
+                }
+                whileTap={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        scale: 0.97,
+                        transition: { type: "spring", stiffness: 650, damping: 32 },
+                      }
+                }
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 <span className="dock-tooltip">{label}</span>

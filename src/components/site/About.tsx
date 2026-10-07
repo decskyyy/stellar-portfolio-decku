@@ -60,7 +60,7 @@ export default function About({ profile }: { profile: Profile }) {
                     {item.href ? (
                       <a
                         href={item.href}
-                        className="rounded-sm underline decoration-white/30 underline-offset-4 hover:decoration-current focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
+                        className="rounded-sm underline decoration-base-muted underline-offset-4 hover:decoration-current focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                       >
                         {item.value}
                       </a>

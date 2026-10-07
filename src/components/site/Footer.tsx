@@ -15,7 +15,7 @@ export default function Footer({ profile }: { profile: Profile }) {
       icon: LinkedinIcon,
     },
     {
-      name: "Mail",
+      name: "Email",
       href: profile.email ? `mailto:${profile.email}` : undefined,
       icon: Mail,
     },
@@ -25,9 +25,9 @@ export default function Footer({ profile }: { profile: Profile }) {
     <footer className="border-t border-base-muted">
       <div className="mx-auto flex max-w-3xl flex-col items-center justify-between gap-5 px-4 py-7 sm:flex-row sm:px-6">
         <div className="text-center sm:text-left">
-          <p className="text-sm font-semibold text-ink">{profile.full_name}</p>
+          <p className="text-sm font-semibold text-ink">Made with ❤️ by Decky</p>
           <p className="mt-1 text-xs text-ink-muted">
-            &copy; {new Date().getFullYear()} All rights reserved.
+            &copy; {new Date().getFullYear()} Decky Susilo
           </p>
         </div>
         {socialLinks.length > 0 && (

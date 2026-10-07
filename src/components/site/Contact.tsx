@@ -60,7 +60,7 @@ export default function Contact({ profile }: { profile: Profile }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center text-sm font-medium text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
             >
-              Résumé (PDF)
+              Resume (PDF)
               <span className="sr-only">(opens in a new tab)</span>
             </a>
           )}

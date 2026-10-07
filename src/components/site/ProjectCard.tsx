@@ -15,7 +15,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       {project.image_url ? (
         <Link
           href={`/projects/${project.id}`}
-          aria-label={`Buka proyek ${project.title}`}
+          aria-label={`Open ${project.title} project`}
           className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-base-muted bg-base-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -32,8 +32,8 @@ export default function ProjectCard({ project }: { project: Project }) {
       ) : (
         <Link
           href={`/projects/${project.id}`}
-          aria-label={`Buka proyek ${project.title}`}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-base-surface text-ink-faint transition-colors duration-200 group-hover:bg-white/10 group-hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
+          aria-label={`Open ${project.title} project`}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-base-surface text-ink-faint transition-colors duration-200 group-hover:bg-base-muted group-hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
         >
           <Box className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
         </Link>
@@ -72,7 +72,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             href={`/projects/${project.id}`}
             className="inline-flex min-h-10 items-center text-xs font-medium text-accent-soft underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
           >
-            Buka proyek
+            View project
           </Link>
           {demoUrl && (
             <a
@@ -92,7 +92,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-10 items-center gap-1 text-xs font-medium text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
             >
-              <GithubIcon className="h-4 w-4" /> Kode
+              <GithubIcon className="h-4 w-4" /> Source
               <span className="sr-only">(opens in a new tab)</span>
             </a>
           )}

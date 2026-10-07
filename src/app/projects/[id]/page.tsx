@@ -44,9 +44,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             className="inline-flex min-h-10 items-center gap-2 text-sm text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Kembali ke proyek
+            Back to projects
           </Link>
-          <p className="portfolio-section-label mt-7">Proyek pribadi</p>
+          <p className="portfolio-section-label mt-7">Personal project</p>
           <h1 className="mt-3 break-words text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
             {project.title}
           </h1>
@@ -59,7 +59,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={project.image_url}
-                alt={`Tampilan ${project.title}`}
+                alt={`${project.title} preview`}
                 className="max-h-[32rem] w-full object-cover"
                 loading="eager"
                 decoding="async"
@@ -69,7 +69,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
           {project.tech_stack.length > 0 && (
             <div className="mt-7">
-              <h2 className="portfolio-section-label">Teknologi</h2>
+              <h2 className="portfolio-section-label">Technology</h2>
               <ul className="mt-3 flex flex-wrap gap-2">
                 {project.tech_stack.map((tech) => (
                   <li
@@ -91,7 +91,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 rel="noopener noreferrer"
                 className="inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-ink transition-colors hover:text-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
               >
-                Lihat demo <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                View demo <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </a>
             )}
             {githubUrl && (
@@ -102,7 +102,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 className="inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
               >
                 <GithubIcon className="h-4 w-4" />
-                Kode sumber
+                Source code
               </a>
             )}
           </div>

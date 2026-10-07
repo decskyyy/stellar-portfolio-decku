@@ -15,10 +15,7 @@ export default function PublicShell({
   return (
     <>
       <GlowField />
-      <Nav
-        name={profile.full_name}
-        profile={profile}
-      />
+      <Nav profile={profile} />
       <LiveInfo />
       <main id="main-content" className="portfolio-main relative">
         {children}

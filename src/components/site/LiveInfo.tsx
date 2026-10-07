@@ -3,17 +3,17 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const timeFormatter = new Intl.DateTimeFormat("id-ID", {
+const timeFormatter = new Intl.DateTimeFormat(undefined, {
   hour: "2-digit",
   minute: "2-digit",
   second: "2-digit",
   hourCycle: "h23",
 });
 
-const dateFormatter = new Intl.DateTimeFormat("id-ID", {
-  weekday: "long",
+const dateFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
   day: "numeric",
-  month: "long",
+  month: "short",
   year: "numeric",
 });
 
@@ -48,6 +48,22 @@ export default function LiveInfo() {
 
   return (
     <>
+      <header className="mobile-clock-header sticky top-0 z-40 border-b border-base-muted/70 bg-base/90 backdrop-blur-md md:hidden">
+        <div
+          className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-3 px-4 sm:px-6"
+          aria-label={now ? dateFormatter.format(now) : "Local date and time"}
+        >
+          <time
+            className="font-mono text-sm font-semibold tabular-nums text-ink"
+            dateTime={now?.toISOString()}
+          >
+            {now ? timeFormatter.format(now) : "--:--:--"}
+          </time>
+          <span className="truncate text-right text-xs text-ink-muted">
+            {now ? dateFormatter.format(now) : "Local date"}
+          </span>
+        </div>
+      </header>
       <motion.div
         className="live-info live-info-time"
         aria-label={

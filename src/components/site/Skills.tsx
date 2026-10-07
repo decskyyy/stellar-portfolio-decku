@@ -2,44 +2,79 @@
 
 import type { Skill } from "@/lib/types";
 import {
+  BookOpen,
+  Briefcase,
+  Code2,
+  Cloud,
   Database,
-  ShieldCheck,
-  Cog,
+  Laptop,
+  Monitor,
   Server,
-  TerminalSquare,
-  Code,
+  ShieldCheck,
+  ShoppingCart,
+  Cog,
+  Terminal,
+  Ticket,
+  Users,
+  Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { getPublicSkillCategory } from "@/lib/skill-category";
 import Reveal from "./Reveal";
 
 const categoryIcons: Record<string, LucideIcon> = {
-  "Sistem & Jaringan": Server,
-  "Database & SQL": Database,
-  "Dukungan Teknis & Operasional": Cog,
-  "Keamanan & Kepatuhan": ShieldCheck,
-  Lainnya: TerminalSquare,
-  default: Code,
+  "sistem & jaringan": Server,
+  "operating systems": Monitor,
+  "business applications & enterprise systems": Briefcase,
+  "core tools & enterprise systems": Wrench,
+  "support operations": Cog,
+  "data & database": Database,
+  "web technologies": Code2,
+  "governance & security": ShieldCheck,
+  "productivity & collaboration": Cloud,
+  "lainnya": Laptop,
 };
+
+const skillIcons: Array<{ matches: RegExp; icon: LucideIcon }> = [
+  { matches: /\b(sap|erp)\b/i, icon: Briefcase },
+  { matches: /\b(postgresql|postgres|mysql|sql|pgadmin|dbeaver|database)\b/i, icon: Database },
+  { matches: /\b(windows|macos)\b/i, icon: Monitor },
+  { matches: /\blinux\b/i, icon: Terminal },
+  { matches: /\b(html|css|javascript|typescript|react|next\.?js)\b/i, icon: Code2 },
+  { matches: /\bgoogle workspace\b/i, icon: Cloud },
+  { matches: /\b(hris|crm)\b/i, icon: Users },
+  { matches: /\bpos\b/i, icon: ShoppingCart },
+  { matches: /\b(incident|ticket|freescout|sla)\b/i, icon: Ticket },
+  { matches: /\b(training|documentation|dokumentasi)\b/i, icon: BookOpen },
+  { matches: /\b(iso|security|governance|compliance)\b/i, icon: ShieldCheck },
+  { matches: /\b(troubleshooting|support)\b/i, icon: Wrench },
+];
 
 function getCategoryIcon(category: string): LucideIcon {
   const normalizedCategory = category.toLowerCase();
-  for (const key in categoryIcons) {
-    if (normalizedCategory.includes(key.split(" & ")[0].toLowerCase())) {
-      return categoryIcons[key];
-    }
-  }
-  const foundKey = Object.keys(categoryIcons).find((key) =>
-    normalizedCategory.includes(key.toLowerCase()),
+  return (
+    categoryIcons[normalizedCategory] ??
+    (normalizedCategory.includes("database")
+      ? Database
+      : normalizedCategory.includes("support")
+        ? Cog
+        : normalizedCategory.includes("security") ||
+            normalizedCategory.includes("governance")
+          ? ShieldCheck
+          : Laptop)
   );
-  return foundKey ? categoryIcons[foundKey] : categoryIcons.default;
+}
+
+function getSkillIcon(name: string): LucideIcon {
+  return skillIcons.find(({ matches }) => matches.test(name))?.icon ?? Wrench;
 }
 
 export default function Skills({ skills }: { skills: Skill[] }) {
   const groups = new Map<string, Skill[]>();
-  for (const s of skills) {
-    const key = s.category?.trim() || "Lainnya";
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(s);
+  for (const skill of skills) {
+    const category = getPublicSkillCategory(skill);
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category)!.push(skill);
   }
   const categories = Array.from(groups.entries());
 
@@ -57,30 +92,31 @@ export default function Skills({ skills }: { skills: Skill[] }) {
 
       <div className="mx-auto mt-5 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
         {categories.map(([category, list], index) => {
-          const Icon = getCategoryIcon(category);
+          const CategoryIcon = getCategoryIcon(category);
           return (
             <Reveal key={category} delay={index * 0.07} y={12}>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
-                <h3 className="break-words text-sm font-medium text-ink">
-                  {category}
-                </h3>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <CategoryIcon className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
+                  <h3 className="break-words text-sm font-medium text-ink">
+                    {category}
+                  </h3>
+                </div>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {list.map((skill) => {
+                    const SkillIcon = getSkillIcon(skill.name);
+                    return (
+                      <li
+                        key={skill.id}
+                        className="inline-flex max-w-full items-center gap-2 rounded-lg border border-base-muted/70 bg-base/60 px-2.5 py-1.5 text-sm text-ink-muted"
+                      >
+                        <SkillIcon className="h-4 w-4 shrink-0 text-accent-soft" aria-hidden="true" />
+                        <span className="break-words">{skill.name}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
-                {list.map((skill) => {
-                  return (
-                    <li
-                      key={skill.id}
-                      className="inline-flex max-w-full items-center gap-1.5 py-1 text-sm text-ink-muted"
-                    >
-                      <span className="h-1 w-1 shrink-0 rounded-full bg-accent-soft/70" aria-hidden="true" />
-                      <span className="break-words">{skill.name}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
             </Reveal>
           );
         })}
