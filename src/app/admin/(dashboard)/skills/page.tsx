@@ -17,7 +17,7 @@ export default async function AdminSkillsPage() {
       <div>
         <h1 className="font-display text-2xl font-bold text-admin-text">Skills</h1>
         <p className="mt-1.5 font-body text-sm text-admin-muted">
-          Skills are grouped by category and displayed in the order you choose.
+          Categories organize your Admin list; the portfolio shows skills and logos in a clean, simple list.
         </p>
       </div>
       <SkillManager initialSkills={(data as Skill[] | null) ?? []} />

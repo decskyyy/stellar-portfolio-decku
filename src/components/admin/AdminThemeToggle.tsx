@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Monitor, Moon, Sun } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type Theme = 'light' | 'dark' | 'system';
 
-const options: Array<{ value: Theme; label: string; icon: string }> = [
-  { value: 'light', label: 'Light', icon: '☼' },
-  { value: 'dark', label: 'Dark', icon: '◐' },
-  { value: 'system', label: 'System', icon: '◌' },
+const options: Array<{ value: Theme; label: string; icon: LucideIcon }> = [
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', icon: Monitor },
 ];
 
 export default function AdminThemeToggle() {
@@ -27,19 +29,19 @@ export default function AdminThemeToggle() {
   }
 
   return (
-    <div className="admin-theme-control" aria-label="Admin theme">
-      <span className="admin-theme-label">Theme</span>
-      <div className="admin-theme-options" role="group" aria-label="Choose a theme">
+    <div className="admin-theme-control">
+      <div className="admin-theme-options" role="group" aria-label="Admin appearance">
         {options.map((option) => (
           <button
             key={option.value}
             type="button"
             aria-pressed={theme === option.value}
+            aria-label={`Use ${option.label.toLowerCase()} appearance`}
             className={`admin-theme-option ${theme === option.value ? 'admin-theme-option-active' : ''}`}
             onClick={() => changeTheme(option.value)}
             title={option.label}
           >
-            <span aria-hidden="true">{option.icon}</span>
+            <option.icon className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">{option.label}</span>
           </button>
         ))}

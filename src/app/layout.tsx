@@ -19,7 +19,7 @@ const space = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://stellar-portfolio.example.com"),
+  metadataBase: new URL("https://stellar-portfolio-decku.vercel.app"),
   title: {
     default: "Portfolio | Aristo Decky Susilo",
     template: "%s | Aristo Decky Susilo",
@@ -42,6 +42,25 @@ export const metadata: Metadata = {
     title: "Portfolio | Aristo Decky Susilo",
     description: "IT Support & Application Support Portfolio.",
     siteName: "Aristo Decky Susilo Portfolio",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Aristo Decky Susilo — IT Support & Application Support",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Portfolio | Aristo Decky Susilo",
+    description: "IT Support & Application Support Portfolio.",
+    images: [
+      {
+        url: "/og-image.png",
+        alt: "Aristo Decky Susilo — IT Support & Application Support",
+      },
+    ],
   },
   robots: {
     index: true,

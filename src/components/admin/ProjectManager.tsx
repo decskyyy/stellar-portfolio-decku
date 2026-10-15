@@ -1,13 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { STORAGE_BUCKET, type Project } from '@/lib/types';
 import StarRating from '@/components/site/StarRating';
 import SkillLogo from '@/components/site/SkillLogo';
-import { Code2 } from 'lucide-react';
 
 type FormState = {
   id: string | null;
@@ -44,6 +43,8 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isRefreshing, startRefresh] = useTransition();
 
   const editing = form.id !== null;
   const technologies = form.tech_stack
@@ -77,28 +78,33 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
   }
 
   async function uploadImage(file: File) {
+    if (uploading) return;
     setUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `projects/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `projects/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, file, { cacheControl: '3600', upsert: false });
 
-    const { error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (error) {
+        toast.error(`Image upload failed: ${error.message}`);
+        return;
+      }
 
-    if (error) {
-      toast.error(`Image upload failed: ${error.message}`);
+      const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      set('image_url', data.publicUrl);
+      toast.success('Image uploaded. Save the project to apply the change.');
+    } catch (error) {
+      toast.error(`Image upload failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
       setUploading(false);
-      return;
     }
-
-    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-    set('image_url', data.publicUrl);
-    toast.success('Image uploaded. Save the project to apply the change.');
-    setUploading(false);
   }
 
   async function save() {
+    if (saving || uploading) return;
     if (!form.title.trim()) {
       toast.error('Project title is required.');
       return;
@@ -121,35 +127,48 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
       sort_order: Number(form.sort_order) || 0,
     };
 
-    const query = editing
-      ? supabase.from('projects').update(payload).eq('id', form.id!)
-      : supabase.from('projects').insert(payload);
+    try {
+      const query = editing
+        ? supabase.from('projects').update(payload).eq('id', form.id!)
+        : supabase.from('projects').insert(payload);
 
-    const { error } = await query;
-    setSaving(false);
+      const { error } = await query;
 
-    if (error) {
-      toast.error(`Save failed: ${error.message}`);
-      return;
+      if (error) {
+        toast.error(`Save failed: ${error.message}`);
+        return;
+      }
+
+      toast.success(editing ? 'Project updated.' : 'Project added.');
+      resetForm();
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Save failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setSaving(false);
     }
-
-    toast.success(editing ? 'Project updated.' : 'Project added.');
-    resetForm();
-    router.refresh();
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from('projects').delete().eq('id', id);
-    setConfirmId(null);
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from('projects').delete().eq('id', id);
 
-    if (error) {
-      toast.error(`Delete failed: ${error.message}`);
-      return;
+      if (error) {
+        toast.error(`Delete failed: ${error.message}`);
+        return;
+      }
+
+      setConfirmId(null);
+      if (form.id === id) resetForm();
+      toast.success('Project deleted.');
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Delete failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setDeletingId(null);
     }
-
-    if (form.id === id) resetForm();
-    toast.success('Project deleted.');
-    router.refresh();
   }
 
   return (
@@ -215,7 +234,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                   >
                     <SkillLogo
                       name={technology}
-                      fallback={Code2}
+                      fallback="code"
                       className="h-3.5 w-3.5 shrink-0 text-admin-accent"
                     />
                     <span className="break-words">{technology}</span>
@@ -288,6 +307,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                 ref={fileRef}
                 type="file"
                 accept="image/*"
+                disabled={uploading}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) uploadImage(file);
@@ -296,14 +316,14 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                            file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-admin-accent/10 file:px-3 file:py-1.5
                            file:font-body file:text-xs file:font-medium file:text-admin-accent"
               />
-              {uploading && <span className="font-body text-xs text-admin-muted">Uploading…</span>}
+              {uploading && <span className="font-body text-xs text-admin-muted" role="status">Uploading…</span>}
             </div>
 
             {form.image_url && (
               <div className="mt-3 flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={form.image_url} alt="Project image preview" className="h-16 w-28 rounded-lg border border-admin-border object-cover" />
-                <button onClick={() => set('image_url', '')} className="font-body text-xs font-medium text-admin-muted hover:text-admin-danger">
+                <button onClick={() => set('image_url', '')} disabled={uploading} className="font-body text-xs font-medium text-admin-muted hover:text-admin-danger">
                   Remove image
                 </button>
               </div>
@@ -344,7 +364,9 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
       <div>
         <div className="admin-section-header mb-4">
           <h2 className="font-display text-lg font-bold text-admin-text">Project list</h2>
-          <span className="admin-chip">{initialProjects.length} projects</span>
+          <span className="admin-chip" aria-live="polite">
+            {isRefreshing ? 'Updating…' : `${initialProjects.length} projects`}
+          </span>
         </div>
 
         {initialProjects.length === 0 ? (
@@ -384,15 +406,15 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                     </button>
                     {confirmId === p.id ? (
                       <div className="flex gap-1.5">
-                        <button onClick={() => remove(p.id)} className="admin-btn-danger !px-2 !py-1 !text-[11px]">
-                          Confirm
+                        <button onClick={() => remove(p.id)} disabled={deletingId !== null} className="admin-btn-danger !px-2 !py-1 !text-[11px]">
+                          {deletingId === p.id ? 'Deleting…' : 'Confirm'}
                         </button>
-                        <button onClick={() => setConfirmId(null)} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">
+                        <button onClick={() => setConfirmId(null)} disabled={deletingId !== null} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">
                           Cancel
                         </button>
                       </div>
                     ) : (
-                      <button onClick={() => setConfirmId(p.id)} className="admin-btn-danger !px-3 !py-1 !text-xs">
+                      <button onClick={() => setConfirmId(p.id)} disabled={deletingId !== null} className="admin-btn-danger !px-3 !py-1 !text-xs">
                         Delete
                       </button>
                     )}

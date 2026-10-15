@@ -6,6 +6,9 @@ import RevealOnLoad from "./RevealOnLoad";
 
 export default function Hero({ profile }: { profile: Profile }) {
   const tagline = profile.tagline?.trim();
+  const profileDetails = [profile.role_title?.trim(), profile.location?.trim()]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <section id="profile" className="home-hero scroll-mt-24">
@@ -15,10 +18,11 @@ export default function Hero({ profile }: { profile: Profile }) {
             <h1 className="mt-2 break-words text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
               {profile.full_name}
             </h1>
-            <p className="mt-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-muted">
-              {profile.role_title || "IT Support & Application Support"}
-              {profile.location ? ` · ${profile.location}` : ""}
-            </p>
+            {profileDetails && (
+              <p className="mt-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-muted">
+                {profileDetails}
+              </p>
+            )}
           </RevealOnLoad>
 
           <RevealOnLoad delay={0.15}>

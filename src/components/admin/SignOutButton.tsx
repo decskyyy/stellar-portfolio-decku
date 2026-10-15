@@ -3,16 +3,28 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 export default function SignOutButton() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function signOut() {
+    if (busy) return;
     setBusy(true);
-    await createClient().auth.signOut();
-    router.replace('/admin/login');
-    router.refresh();
+    try {
+      const { error } = await createClient().auth.signOut();
+      if (error) {
+        toast.error(`Sign out failed: ${error.message}`);
+        return;
+      }
+      router.replace('/admin/login');
+      router.refresh();
+    } catch (error) {
+      toast.error(`Sign out failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

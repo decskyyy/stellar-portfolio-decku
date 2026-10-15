@@ -15,15 +15,17 @@ export default function CvImport({
   onApplySkills,
 }: {
   onApplyExperiences: (drafts: ExperienceDraft[]) => void;
-  onApplySkills: (skills: string[]) => void;
+  onApplySkills: (skills: string[]) => Promise<void>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [checkedSkills, setCheckedSkills] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [applyingSkills, setApplyingSkills] = useState(false);
 
   async function handleFile(file: File) {
+    if (loading) return;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -36,7 +38,6 @@ export default function CvImport({
 
       if (!res.ok) {
         setError(data.error || 'Could not process the resume.');
-        setLoading(false);
         return;
       }
 
@@ -50,17 +51,27 @@ export default function CvImport({
   }
 
   function applyExperiences() {
-    if (!result) return;
+    if (!result || result.experiences.length === 0) return;
     onApplyExperiences(result.experiences);
     toast.success(`${result.experiences.length} experience drafts added below. Review and complete each entry.`);
+    setResult((current) => (current ? { ...current, experiences: [] } : current));
   }
 
-  function applySkills() {
+  async function applySkills() {
     const chosen = Array.from(checkedSkills);
-    if (chosen.length === 0) return;
-    onApplySkills(chosen);
-    toast.success(`${chosen.length} skills added.`);
-    setResult((r) => (r ? { ...r, skills: [] } : r));
+    if (chosen.length === 0 || applyingSkills) return;
+
+    setApplyingSkills(true);
+    try {
+      await onApplySkills(chosen);
+      toast.success(`${chosen.length} skills added.`);
+      setResult((r) => (r ? { ...r, skills: [] } : r));
+      setCheckedSkills(new Set());
+    } catch (error) {
+      toast.error(`Could not add skills: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setApplyingSkills(false);
+    }
   }
 
   function toggleSkill(skill: string) {
@@ -88,6 +99,7 @@ export default function CvImport({
         ref={fileRef}
         type="file"
         accept="application/pdf"
+        disabled={loading || applyingSkills}
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) handleFile(f);
@@ -97,7 +109,7 @@ export default function CvImport({
                    file:font-body file:text-xs file:font-medium file:text-admin-accent"
       />
 
-      {loading && <p className="mt-3 font-body text-sm text-admin-muted">Reading and analyzing PDF…</p>}
+      {loading && <p className="mt-3 font-body text-sm text-admin-muted" role="status">Reading and analyzing PDF…</p>}
       {error && <p className="admin-status-error mt-3 rounded-lg border px-3 py-2 font-body text-sm">{error}</p>}
 
       {result && (
@@ -133,8 +145,8 @@ export default function CvImport({
             <div className="flex items-center justify-between">
               <h3 className="font-body text-sm font-semibold text-admin-text">Skills found ({result.skills.length})</h3>
               {result.skills.length > 0 && (
-                <button onClick={applySkills} disabled={checkedSkills.size === 0} className="admin-btn-primary !px-3 !py-1.5 !text-xs">
-                  Add selected
+                <button onClick={applySkills} disabled={checkedSkills.size === 0 || applyingSkills} className="admin-btn-primary !px-3 !py-1.5 !text-xs">
+                  {applyingSkills ? 'Adding…' : 'Add selected'}
                 </button>
               )}
             </div>
@@ -150,6 +162,7 @@ export default function CvImport({
                     <input
                       type="checkbox"
                       checked={checkedSkills.has(s)}
+                      disabled={applyingSkills}
                       onChange={() => toggleSkill(s)}
                       className="h-3.5 w-3.5 accent-admin-accent"
                     />

@@ -1,10 +1,6 @@
-'use client';
-
-import { Suspense, useState, type FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import AdminThemeToggle from '@/components/admin/AdminThemeToggle';
+import LoginForm from '@/components/admin/LoginForm';
 
 function getSafeAdminNextPath(value: string | null): string {
   const fallback = '/admin';
@@ -23,133 +19,25 @@ function getSafeAdminNextPath(value: string | null): string {
   return `${target.pathname}${target.search}${target.hash}`;
 }
 
-function LoginForm() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const next = getSafeAdminNextPath(params.get('next'));
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (authError) {
-      setError(
-        authError.message.toLowerCase().includes('invalid')
-          ? 'Email or password is incorrect. Please try again.'
-          : authError.message
-      );
-      setLoading(false);
-      return;
-    }
-
-    router.replace(next);
-    router.refresh();
-  }
-
-  return (
-    <div className="admin-card w-full max-w-md">
-      <div className="mb-8">
-        <span className="font-body text-xs font-semibold uppercase tracking-wide text-admin-accent">Restricted access</span>
-        <h1 className="mt-2 font-display text-2xl font-bold text-admin-text">Admin sign in</h1>
-        <p className="mt-2 font-body text-sm text-admin-muted">
-          Sign in with your registered account to manage your portfolio.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="admin-label">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            className="admin-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@example.com"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password" className="admin-label">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            className="admin-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-          />
-        </div>
-
-        {error && (
-          <p className="admin-status-error rounded-lg border px-4 py-2.5 font-body text-sm">
-            {error}
-          </p>
-        )}
-
-        <button type="submit" disabled={loading || !email || !password} className="admin-btn-primary w-full">
-          {loading ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
-
-      <Link href="/" className="mt-6 block text-center font-body text-sm text-admin-muted transition hover:text-admin-text">
-        Back to portfolio
-      </Link>
-    </div>
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: { next?: string | string[] };
+}) {
+  const next = getSafeAdminNextPath(
+    typeof searchParams.next === 'string' ? searchParams.next : null
   );
-}
 
-export default function LoginPage() {
   return (
-    <main className="admin-shell flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="relative w-full max-w-5xl">
-        <div className="mb-3 flex justify-end">
+    <main className="admin-shell flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+      <div className="w-full max-w-md">
+        <div className="mb-4 flex items-center justify-between">
+          <Link href="/" className="font-body text-sm text-admin-muted transition hover:text-admin-text">
+            Back to portfolio
+          </Link>
           <AdminThemeToggle />
         </div>
-        <div className="admin-login-frame overflow-hidden rounded-[28px] border shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur-2xl">
-          <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="hidden flex-col justify-between bg-slate-950 px-10 py-10 text-white lg:flex">
-              <div>
-                <span className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-200">
-                  Admin access
-                </span>
-                <h2 className="mt-6 max-w-sm text-3xl font-bold tracking-tight">Manage your portfolio with clarity and confidence.</h2>
-              </div>
-
-              <div className="space-y-4 text-sm text-slate-300">
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/30 text-xs font-semibold text-indigo-100">01</span>
-                  <span>Update your profile, projects, and skills from one dashboard.</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500/30 text-xs font-semibold text-cyan-100">02</span>
-                  <span>Your changes appear on the portfolio site immediately.</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="admin-login-form-panel p-6 sm:p-8 lg:p-10">
-              <Suspense fallback={null}>
-                <LoginForm />
-              </Suspense>
-            </div>
-          </div>
-        </div>
+        <LoginForm next={next} />
       </div>
     </main>
   );

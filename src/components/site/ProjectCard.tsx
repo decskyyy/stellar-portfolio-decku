@@ -2,7 +2,7 @@
 
 import type { Project } from "@/lib/types";
 import { profileUrl, safeExternalUrl } from "@/lib/urls";
-import { ArrowUpRight, Box, Code2 } from "lucide-react";
+import { ArrowUpRight, Box } from "lucide-react";
 import { GithubIcon } from "./BrandIcon";
 import SkillLogo from "./SkillLogo";
 import Link from "next/link";
@@ -61,7 +61,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               <li key={tech} className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words text-xs text-ink-faint">
                 <SkillLogo
                   name={tech}
-                  fallback={Code2}
+                  fallback="code"
                   className="h-3.5 w-3.5 shrink-0 text-ink-faint"
                 />
                 <span>{tech}</span>

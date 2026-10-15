@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -37,32 +37,38 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<'avatar' | 'cv' | null>(null);
+  const [isRefreshing, startRefresh] = useTransition();
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
   }
 
   async function upload(kind: 'avatar' | 'cv', file: File) {
+    if (uploading) return;
     setUploading(kind);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
+      const path = `${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
-    const path = `${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert: false });
 
-    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert: false });
+      if (error) {
+        toast.error(`Upload failed: ${error.message}`);
+        return;
+      }
 
-    if (error) {
-      toast.error(`Upload failed: ${error.message}`);
+      const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      set(kind === 'avatar' ? 'avatar_url' : 'cv_url', data.publicUrl);
+      toast.success('File uploaded. Save your profile to publish the change.');
+    } catch (error) {
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
       setUploading(null);
-      return;
     }
-
-    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-    set(kind === 'avatar' ? 'avatar_url' : 'cv_url', data.publicUrl);
-    toast.success('File uploaded. Save your profile to publish the change.');
-    setUploading(null);
   }
 
   async function save() {
+    if (saving || uploading) return;
     if (!draft.full_name.trim()) {
       toast.error('Name is required.');
       return;
@@ -76,25 +82,29 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
       updated_at: new Date().toISOString(),
     };
 
-    const query = profileId
-      ? supabase.from('profile').update(payload).eq('id', profileId).select().maybeSingle()
-      : supabase.from('profile').insert(payload).select().maybeSingle();
+    try {
+      const query = profileId
+        ? supabase.from('profile').update(payload).eq('id', profileId).select().maybeSingle()
+        : supabase.from('profile').insert(payload).select().maybeSingle();
 
-    const { data, error } = await query;
+      const { data, error } = await query;
 
-    setSaving(false);
+      if (error) {
+        toast.error(`Save failed: ${error.message}`);
+        return;
+      }
 
-    if (error) {
-      toast.error(`Save failed: ${error.message}`);
-      return;
+      if (data?.id) {
+        setProfileId(data.id);
+      }
+
+      toast.success('Profile saved and published on the home page.');
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Save failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setSaving(false);
     }
-
-    if (data?.id) {
-      setProfileId(data.id);
-    }
-
-    toast.success('Profile saved and published on the home page.');
-    router.refresh();
   }
 
   const text = (
@@ -125,7 +135,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
 
         <div className="space-y-4">
           {text('full_name', 'Full name', 'Aristo Decky Susilo')}
-          {text('role_title', 'Professional title', 'IT Support & Application Support')}
+          {text('role_title', 'Professional title')}
 
           <div>
             <label htmlFor="tagline" className="admin-label">
@@ -160,8 +170,8 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
             </p>
           </div>
 
-          <button onClick={save} disabled={saving || uploading !== null} className="admin-btn-primary w-full">
-            {saving ? 'Saving…' : 'Save profile'}
+          <button onClick={save} disabled={saving || uploading !== null || isRefreshing} className="admin-btn-primary w-full">
+            {saving ? 'Saving…' : isRefreshing ? 'Updating site…' : 'Save profile'}
           </button>
         </div>
       </div>
@@ -192,6 +202,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                 <input
                   type="file"
                   accept="image/*"
+                  disabled={uploading !== null}
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) upload('avatar', f);
@@ -201,6 +212,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                              file:font-body file:text-xs file:font-medium file:text-admin-accent"
                 />
               </div>
+              {uploading === 'avatar' && <p className="mt-2 font-body text-xs text-admin-muted" role="status">Uploading photo…</p>}
             </div>
 
             <div>
@@ -208,6 +220,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
               <input
                 type="file"
                 accept="application/pdf"
+                disabled={uploading !== null}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) upload('cv', f);
@@ -221,7 +234,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                   View uploaded resume
                 </a>
               )}
-              {uploading === 'cv' && <p className="mt-2 font-body text-xs text-admin-muted">Uploading…</p>}
+              {uploading === 'cv' && <p className="mt-2 font-body text-xs text-admin-muted" role="status">Uploading resume…</p>}
             </div>
           </div>
         </div>

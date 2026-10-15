@@ -16,52 +16,49 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/admin/login');
 
   return (
-    <div className="admin-shell px-3 py-3 sm:px-4 lg:px-6">
-      <div className="mx-auto flex max-w-7xl gap-4">
-        <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] w-64 shrink-0 flex-col rounded-[26px] border border-admin-border/25 bg-admin-panel/85 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl md:flex">
-          <div className="admin-inset mb-6 flex items-center gap-3 rounded-2xl border px-3 py-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-admin-accent to-admin-accentHover font-display text-sm font-bold text-white shadow-lg shadow-indigo-500/20">
-              A
-            </span>
-            <div>
-              <p className="font-display text-sm font-bold text-admin-text">Admin panel</p>
-              <p className="text-[10px] uppercase tracking-[0.22em] text-admin-muted">Portfolio</p>
-            </div>
-          </div>
+    <div className="admin-shell min-h-screen">
+      <header className="admin-topbar sticky top-0 z-20 border-b">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex min-h-16 items-center justify-between gap-4">
+            <Link href="/admin" className="flex min-w-0 items-center gap-3" aria-label="Portfolio admin overview">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-admin-accent font-display text-sm font-bold text-white">
+                A
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-display text-sm font-semibold text-admin-text">Portfolio</span>
+                <span className="block text-[11px] text-admin-muted">Admin workspace</span>
+              </span>
+            </Link>
 
-          <Sidebar />
-
-          <div className="mt-auto space-y-3 border-t border-admin-border pt-4">
-            <AdminThemeToggle />
-            <p className="truncate font-body text-xs text-admin-muted">{user.email}</p>
-            <div className="flex gap-2">
-              <Link href="/" target="_blank" className="admin-btn-secondary flex-1 !px-3 !py-1.5 !text-xs">
-                View site
-              </Link>
-              <SignOutButton />
-            </div>
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <header className="sticky top-3 z-10 flex items-center justify-between rounded-[22px] border border-admin-border/25 bg-admin-panel/85 px-4 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.06)] backdrop-blur-xl md:hidden">
-            <span className="font-display text-sm font-bold text-admin-text">Admin panel</span>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              {user.email && (
+                <span className="hidden max-w-40 truncate font-body text-xs text-admin-muted md:block" title={user.email}>
+                  {user.email}
+                </span>
+              )}
               <AdminThemeToggle />
-              <Link href="/" target="_blank" className="admin-btn-secondary !px-3 !py-1 !text-xs">
-                Site
+              <Link
+                href="/"
+                target="_blank"
+                rel="noreferrer"
+                className="admin-btn-secondary !px-3 !py-1.5 !text-xs"
+              >
+                <span className="hidden sm:inline">View site</span>
+                <span className="sm:hidden">Site</span>
               </Link>
               <SignOutButton />
             </div>
-          </header>
+          </div>
 
-          <div className="mt-3 rounded-[22px] border border-admin-border/25 bg-admin-panel/85 px-4 py-2 shadow-[0_12px_32px_rgba(15,23,42,0.04)] backdrop-blur-xl md:hidden">
+          <div className="-mx-1 overflow-x-auto pb-2">
             <Sidebar />
           </div>
-
-          <main className="pt-4 sm:pt-5">{children}</main>
         </div>
-      </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-7xl px-4 pb-10 pt-7 sm:px-6 sm:pt-9">
+        {children}
+      </main>
     </div>
   );
 }

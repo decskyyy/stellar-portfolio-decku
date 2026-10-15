@@ -23,7 +23,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-1">
+    <nav aria-label="Admin sections" className="flex w-max items-center gap-1">
       {links.map((l) => {
         const active = l.href === '/admin' ? pathname === '/admin' : pathname.startsWith(l.href);
         return (

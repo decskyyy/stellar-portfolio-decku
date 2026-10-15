@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -49,6 +49,8 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
   const [saving, setSaving] = useState(false);
   const [savingDraftKey, setSavingDraftKey] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isRefreshing, startRefresh] = useTransition();
 
   const editing = form.id !== null;
 
@@ -76,6 +78,7 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
   }
 
   async function save() {
+    if (saving) return;
     if (!form.company.trim() || !form.role_title.trim()) {
       toast.error('Company and job title are required.');
       return;
@@ -93,33 +96,46 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
       sort_order: Number(form.sort_order) || 0,
     };
 
-    const query = editing
-      ? supabase.from('experience').update(payload).eq('id', form.id!)
-      : supabase.from('experience').insert(payload);
+    try {
+      const query = editing
+        ? supabase.from('experience').update(payload).eq('id', form.id!)
+        : supabase.from('experience').insert(payload);
 
-    const { error } = await query;
-    setSaving(false);
+      const { error } = await query;
 
-    if (error) {
-      toast.error(`Save failed: ${error.message}`);
-      return;
+      if (error) {
+        toast.error(`Save failed: ${error.message}`);
+        return;
+      }
+
+      toast.success(editing ? 'Experience updated.' : 'Experience added.');
+      reset();
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Save failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setSaving(false);
     }
-
-    toast.success(editing ? 'Experience updated.' : 'Experience added.');
-    reset();
-    router.refresh();
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from('experience').delete().eq('id', id);
-    setConfirmId(null);
-    if (error) {
-      toast.error(`Delete failed: ${error.message}`);
-      return;
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from('experience').delete().eq('id', id);
+      if (error) {
+        toast.error(`Delete failed: ${error.message}`);
+        return;
+      }
+      setConfirmId(null);
+      if (form.id === id) reset();
+      toast.success('Experience deleted.');
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Delete failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setDeletingId(null);
     }
-    if (form.id === id) reset();
-    toast.success('Experience deleted.');
-    router.refresh();
   }
 
   // --- Integrasi CV import ---
@@ -139,31 +155,36 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
   }
 
   async function saveDraft(draft: DraftRow) {
+    if (savingDraftKey) return;
     if (!draft.company.trim() || !draft.role_title.trim()) {
       toast.error('Complete the company and job title first.');
       return;
     }
     setSavingDraftKey(draft.key);
 
-    const { error } = await supabase.from('experience').insert({
-      company: draft.company.trim(),
-      role_title: draft.role_title.trim(),
-      start_date: draft.start_date,
-      end_date: draft.is_current ? null : draft.end_date,
-      is_current: draft.is_current,
-      description: draft.description.trim(),
-    });
+    try {
+      const { error } = await supabase.from('experience').insert({
+        company: draft.company.trim(),
+        role_title: draft.role_title.trim(),
+        start_date: draft.start_date,
+        end_date: draft.is_current ? null : draft.end_date,
+        is_current: draft.is_current,
+        description: draft.description.trim(),
+      });
 
-    setSavingDraftKey(null);
+      if (error) {
+        toast.error(`Save failed: ${error.message}`);
+        return;
+      }
 
-    if (error) {
-      toast.error(`Save failed: ${error.message}`);
-      return;
+      toast.success('Experience from the resume has been saved.');
+      discardDraft(draft.key);
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Save failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setSavingDraftKey(null);
     }
-
-    toast.success('Experience from the resume has been saved.');
-    discardDraft(draft.key);
-    router.refresh();
   }
 
   async function addSkillsFromCv(skillNames: string[]) {
@@ -175,10 +196,9 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
     }));
     const { error } = await supabase.from('skills').insert(rows);
     if (error) {
-      toast.error(`Could not add some or all skills: ${error.message}`);
-      return;
+      throw new Error(error.message);
     }
-    router.refresh();
+    startRefresh(() => router.refresh());
   }
 
   return (
@@ -230,7 +250,7 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
                 <button onClick={() => saveDraft(d)} disabled={savingDraftKey === d.key} className="admin-btn-primary !px-3 !py-1.5 !text-xs">
                   {savingDraftKey === d.key ? 'Saving…' : 'Save this experience'}
                 </button>
-                <button onClick={() => discardDraft(d.key)} className="admin-btn-secondary !px-3 !py-1.5 !text-xs">
+                <button onClick={() => discardDraft(d.key)} disabled={savingDraftKey !== null} className="admin-btn-secondary !px-3 !py-1.5 !text-xs">
                   Discard
                 </button>
               </div>
@@ -305,7 +325,9 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
         <div>
           <div className="admin-section-header mb-4">
             <h2 className="font-display text-lg font-bold text-admin-text">Saved experience</h2>
-            <span className="admin-chip">{initialExperience.length} roles</span>
+            <span className="admin-chip" aria-live="polite">
+              {isRefreshing ? 'Updating…' : `${initialExperience.length} roles`}
+            </span>
           </div>
 
           {initialExperience.length === 0 ? (
@@ -330,11 +352,13 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
                       </button>
                       {confirmId === e.id ? (
                         <div className="flex gap-1.5">
-                          <button onClick={() => remove(e.id)} className="admin-btn-danger !px-2 !py-1 !text-[11px]">Confirm</button>
-                          <button onClick={() => setConfirmId(null)} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">Cancel</button>
+                          <button onClick={() => remove(e.id)} disabled={deletingId !== null} className="admin-btn-danger !px-2 !py-1 !text-[11px]">
+                            {deletingId === e.id ? 'Deleting…' : 'Confirm'}
+                          </button>
+                          <button onClick={() => setConfirmId(null)} disabled={deletingId !== null} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">Cancel</button>
                         </div>
                       ) : (
-                        <button onClick={() => setConfirmId(e.id)} className="admin-btn-danger !px-3 !py-1 !text-xs">
+                        <button onClick={() => setConfirmId(e.id)} disabled={deletingId !== null} className="admin-btn-danger !px-3 !py-1 !text-xs">
                           Delete
                         </button>
                       )}

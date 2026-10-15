@@ -5,7 +5,7 @@ import { normalizePortfolioCopy } from "@/lib/portfolio-copy";
 export const fallbackProfile: Profile = {
   id: "fallback",
   full_name: "Aristo Decky Susilo",
-  role_title: "IT Support & Application Support",
+  role_title: "",
   tagline: "",
   bio: "",
   location: null,

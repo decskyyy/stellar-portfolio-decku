@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, Code2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import PublicShell from "@/components/site/PublicShell";
 import Reveal from "@/components/site/Reveal";
 import { GithubIcon } from "@/components/site/BrandIcon";
@@ -83,7 +83,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   >
                     <SkillLogo
                       name={tech}
-                      fallback={Code2}
+                      fallback="code"
                       className="h-4 w-4 shrink-0 text-accent-soft"
                     />
                     <span className="break-words">{tech}</span>

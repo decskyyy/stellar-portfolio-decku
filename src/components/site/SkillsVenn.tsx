@@ -6,10 +6,10 @@ import { useState, useCallback, useEffect, useRef } from "react";
 
 const positions = ["top", "left", "right", "bottom"] as const;
 const focusAreas = [
-  "Enterprise Apps",
-  "Data & SQL",
-  "Operating Systems",
-  "Web Technologies",
+  "Incident response",
+  "ERP & POS support",
+  "SQL diagnostics",
+  "System troubleshooting",
 ];
 
 export default function SkillsVenn({

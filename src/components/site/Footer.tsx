@@ -4,6 +4,7 @@ import { profileUrl } from "@/lib/urls";
 import { GithubIcon, LinkedinIcon } from "./BrandIcon";
 
 export default function Footer({ profile }: { profile: Profile }) {
+  const currentYear = new Date().getFullYear();
   const socialLinks = [
     {
       name: "GitHub",
@@ -43,7 +44,7 @@ export default function Footer({ profile }: { profile: Profile }) {
           Made with ❤️ by Decky
         </p>
         <p className="text-xs text-ink-faint">
-          &copy; 2025 Aristo Decky Susilo
+          &copy; {currentYear} Aristo Decky Susilo
         </p>
       </div>
 
@@ -53,7 +54,7 @@ export default function Footer({ profile }: { profile: Profile }) {
             Made with ❤️ by Decky
           </p>
           <p className="mt-1 text-xs text-ink-faint">
-            &copy; 2025 Aristo Decky Susilo
+            &copy; {currentYear} Aristo Decky Susilo
           </p>
         </div>
         <div aria-hidden="true" className="h-12" />

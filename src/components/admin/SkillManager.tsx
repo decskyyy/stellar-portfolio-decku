@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -9,7 +9,7 @@ import SkillLogo from '@/components/site/SkillLogo';
 
 type Draft = { name: string; category: string; level: number; sort_order: number };
 
-const EMPTY: Draft = { name: '', category: 'Support Operations', level: 4, sort_order: 0 };
+const EMPTY: Draft = { name: '', category: '', level: 4, sort_order: 0 };
 
 function LevelPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
@@ -35,9 +35,18 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isRefreshing, startRefresh] = useTransition();
 
   const categories = Array.from(
-    new Set([...initialSkills.map((s) => s.category), 'Support Operations', 'Data & Database', 'Enterprise Systems', 'Governance', 'Web'])
+    new Set([
+      ...initialSkills.map((skill) => skill.category.trim()).filter(Boolean),
+      'Support Operations',
+      'Data & Database',
+      'Enterprise Systems',
+      'Governance',
+      'Web',
+    ])
   ).sort();
 
   function reset() {
@@ -46,6 +55,7 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
   }
 
   async function save() {
+    if (busy) return;
     if (!draft.name.trim()) {
       toast.error('Skill name is required.');
       return;
@@ -55,38 +65,50 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
 
     const payload = {
       name: draft.name.trim(),
-      category: draft.category.trim() || 'General',
+      category: draft.category.trim(),
       level: draft.level,
       sort_order: Number(draft.sort_order) || 0,
     };
 
-    const { error } = editingId
-      ? await supabase.from('skills').update(payload).eq('id', editingId)
-      : await supabase.from('skills').insert(payload);
+    try {
+      const { error } = editingId
+        ? await supabase.from('skills').update(payload).eq('id', editingId)
+        : await supabase.from('skills').insert(payload);
 
-    setBusy(false);
+      if (error) {
+        toast.error(`Save failed: ${error.message}`);
+        return;
+      }
 
-    if (error) {
-      toast.error(`Save failed: ${error.message}`);
-      return;
+      toast.success(editingId ? 'Skill updated.' : 'Skill added.');
+      reset();
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Save failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setBusy(false);
     }
-
-    toast.success(editingId ? 'Skill updated.' : 'Skill added.');
-    reset();
-    router.refresh();
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from('skills').delete().eq('id', id);
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from('skills').delete().eq('id', id);
 
-    if (error) {
-      toast.error(`Delete failed: ${error.message}`);
-      return;
+      if (error) {
+        toast.error(`Delete failed: ${error.message}`);
+        return;
+      }
+
+      if (editingId === id) reset();
+      toast.success('Skill deleted.');
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      toast.error(`Delete failed: ${error instanceof Error ? error.message : 'Unexpected error.'}`);
+    } finally {
+      setDeletingId(null);
     }
-
-    if (editingId === id) reset();
-    toast.success('Skill deleted.');
-    router.refresh();
   }
 
   const grouped = initialSkills.reduce<Record<string, Skill[]>>((acc, s) => {
@@ -127,7 +149,7 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
                   name={draft.name}
                   className="h-4 w-4 shrink-0 text-admin-accent"
                 />
-                Logo preview
+                Icon preview
               </p>
             )}
           </div>
@@ -142,6 +164,7 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
               className="admin-input"
               value={draft.category}
               onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+              placeholder="e.g. Data & Database"
             />
             <datalist id="skill-categories">
               {categories.map((c) => (
@@ -180,7 +203,9 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
       <div>
         <div className="admin-section-header mb-4">
           <h2 className="font-display text-lg font-bold text-admin-text">Skills list</h2>
-          <span className="admin-chip">{initialSkills.length} skills</span>
+          <span className="admin-chip" aria-live="polite">
+            {isRefreshing ? 'Updating…' : `${initialSkills.length} skills`}
+          </span>
         </div>
 
         {initialSkills.length === 0 ? (
@@ -192,7 +217,7 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
             {Object.entries(grouped).map(([category, items]) => (
               <div key={category} className="admin-card">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <h3 className="font-body text-sm font-semibold text-admin-accent">{category}</h3>
+                  <h3 className="font-body text-sm font-semibold text-admin-accent">{category.trim() || 'No category'}</h3>
                   <span className="font-body text-[10px] uppercase tracking-[0.18em] text-admin-muted">{items.length} items</span>
                 </div>
                 <ul className="space-y-2">
@@ -217,8 +242,12 @@ export default function SkillManager({ initialSkills }: { initialSkills: Skill[]
                         >
                           Edit
                         </button>
-                        <button onClick={() => remove(s.id)} className="font-body text-xs font-medium text-admin-muted hover:text-admin-danger">
-                          Delete
+                        <button
+                          onClick={() => remove(s.id)}
+                          disabled={deletingId !== null}
+                          className="font-body text-xs font-medium text-admin-muted hover:text-admin-danger"
+                        >
+                          {deletingId === s.id ? 'Deleting…' : 'Delete'}
                         </button>
                       </div>
                     </li>
