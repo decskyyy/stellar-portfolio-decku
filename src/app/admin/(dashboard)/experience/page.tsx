@@ -15,9 +15,9 @@ export default async function AdminExperiencePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-bold text-admin-text">Pengalaman</h1>
+        <h1 className="font-display text-2xl font-bold text-admin-text">Experience</h1>
         <p className="mt-1.5 font-body text-sm text-admin-muted">
-          Riwayat pekerjaan yang tampil di halaman utama, bisa diisi manual atau lewat deteksi CV.
+          Manage the roles displayed on your portfolio. Add them manually or import details from your resume.
         </p>
       </div>
       <ExperienceManager initialExperience={(data as Experience[] | null) ?? []} />

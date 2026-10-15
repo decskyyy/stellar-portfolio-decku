@@ -17,7 +17,7 @@ export default function SignOutButton() {
 
   return (
     <button onClick={signOut} disabled={busy} className="admin-btn-secondary !px-3 !py-1.5 !text-xs">
-      {busy ? 'Keluar…' : 'Keluar'}
+      {busy ? 'Signing out…' : 'Sign out'}
     </button>
   );
 }

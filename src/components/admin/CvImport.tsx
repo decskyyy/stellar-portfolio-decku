@@ -35,7 +35,7 @@ export default function CvImport({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Gagal memproses CV.');
+        setError(data.error || 'Could not process the resume.');
         setLoading(false);
         return;
       }
@@ -43,7 +43,7 @@ export default function CvImport({
       setResult(data);
       setCheckedSkills(new Set(data.skills));
     } catch {
-      setError('Gagal mengunggah atau membaca file.');
+      setError('Could not upload or read the file.');
     } finally {
       setLoading(false);
     }
@@ -52,14 +52,14 @@ export default function CvImport({
   function applyExperiences() {
     if (!result) return;
     onApplyExperiences(result.experiences);
-    toast.success(`${result.experiences.length} draf pengalaman ditambahkan ke bawah — cek & lengkapi tiap entri.`);
+    toast.success(`${result.experiences.length} experience drafts added below. Review and complete each entry.`);
   }
 
   function applySkills() {
     const chosen = Array.from(checkedSkills);
     if (chosen.length === 0) return;
     onApplySkills(chosen);
-    toast.success(`${chosen.length} skill ditambahkan.`);
+    toast.success(`${chosen.length} skills added.`);
     setResult((r) => (r ? { ...r, skills: [] } : r));
   }
 
@@ -74,14 +74,14 @@ export default function CvImport({
   return (
     <div className="admin-card border-dashed">
       <div className="mb-1 flex items-center gap-2">
-        <h2 className="font-display text-lg font-bold text-admin-text">Deteksi otomatis dari CV</h2>
+        <h2 className="font-display text-lg font-bold text-admin-text">Import from resume</h2>
         <span className="admin-status-warning rounded-full px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide">
           Beta, tanpa AI
         </span>
       </div>
       <p className="mb-4 font-body text-xs text-admin-muted">
-        Upload CV (PDF berisi teks, bukan hasil scan). Sistem menebak pengalaman kerja dari pola tanggal dan
-        skill dari daftar kata kunci — <strong>bukan hasil final</strong>, selalu cek ulang sebelum disimpan.
+        Upload a text-based PDF resume (not a scan). The parser estimates roles from date patterns and
+        skills from keywords. <strong>Review every result before saving.</strong>
       </p>
 
       <input
@@ -97,7 +97,7 @@ export default function CvImport({
                    file:font-body file:text-xs file:font-medium file:text-admin-accent"
       />
 
-      {loading && <p className="mt-3 font-body text-sm text-admin-muted">Membaca dan menganalisis PDF…</p>}
+      {loading && <p className="mt-3 font-body text-sm text-admin-muted">Reading and analyzing PDF…</p>}
       {error && <p className="admin-status-error mt-3 rounded-lg border px-3 py-2 font-body text-sm">{error}</p>}
 
       {result && (
@@ -105,17 +105,17 @@ export default function CvImport({
           <div>
             <div className="flex items-center justify-between">
               <h3 className="font-body text-sm font-semibold text-admin-text">
-                Pengalaman terdeteksi ({result.experiences.length})
+                Experience found ({result.experiences.length})
               </h3>
               {result.experiences.length > 0 && (
                 <button onClick={applyExperiences} className="admin-btn-primary !px-3 !py-1.5 !text-xs">
-                  Tambahkan semua ke form ↓
+                  Add all to form ↓
                 </button>
               )}
             </div>
             {result.experiences.length === 0 ? (
               <p className="mt-1.5 font-body text-xs text-admin-muted">
-                Nggak ketemu pola tanggal yang cocok. Isi manual di form sebelah kiri.
+                No matching date patterns found. Add experience manually using the form.
               </p>
             ) : (
               <ul className="mt-2 space-y-1.5">
@@ -131,15 +131,15 @@ export default function CvImport({
 
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="font-body text-sm font-semibold text-admin-text">Skill terdeteksi ({result.skills.length})</h3>
+              <h3 className="font-body text-sm font-semibold text-admin-text">Skills found ({result.skills.length})</h3>
               {result.skills.length > 0 && (
                 <button onClick={applySkills} disabled={checkedSkills.size === 0} className="admin-btn-primary !px-3 !py-1.5 !text-xs">
-                  Tambahkan yang dicentang
+                  Add selected
                 </button>
               )}
             </div>
             {result.skills.length === 0 ? (
-              <p className="mt-1.5 font-body text-xs text-admin-muted">Tidak ada kata kunci yang cocok di daftar kami.</p>
+              <p className="mt-1.5 font-body text-xs text-admin-muted">No matching keywords found.</p>
             ) : (
               <div className="mt-2 flex flex-wrap gap-2">
                 {result.skills.map((s) => (

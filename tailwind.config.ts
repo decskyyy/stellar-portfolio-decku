@@ -8,8 +8,8 @@ const config: Config = {
         // A more professional and subtle color palette.
         // The 'base' colors are dark, but not black, to avoid harshness.
         // The 'accent' colors are vibrant but not distracting.
+        canvas: "rgb(var(--site-base) / <alpha-value>)",
         base: {
-          DEFAULT: "rgb(var(--site-base) / <alpha-value>)",
           surface: "rgb(var(--site-surface) / <alpha-value>)",
           muted: "rgb(var(--site-muted) / <alpha-value>)",
         },

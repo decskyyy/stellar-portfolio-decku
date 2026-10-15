@@ -2,8 +2,9 @@
 
 import type { Project } from "@/lib/types";
 import { profileUrl, safeExternalUrl } from "@/lib/urls";
-import { ArrowUpRight, Box } from "lucide-react";
+import { ArrowUpRight, Box, Code2 } from "lucide-react";
 import { GithubIcon } from "./BrandIcon";
+import SkillLogo from "./SkillLogo";
 import Link from "next/link";
 
 export default function ProjectCard({ project }: { project: Project }) {
@@ -57,11 +58,13 @@ export default function ProjectCard({ project }: { project: Project }) {
         {project.tech_stack?.length > 0 && (
           <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
             {project.tech_stack.map((tech) => (
-              <li
-                key={tech}
-                className="max-w-full break-words text-xs text-ink-faint"
-              >
-                {tech}
+              <li key={tech} className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words text-xs text-ink-faint">
+                <SkillLogo
+                  name={tech}
+                  fallback={Code2}
+                  className="h-3.5 w-3.5 shrink-0 text-ink-faint"
+                />
+                <span>{tech}</span>
               </li>
             ))}
           </ul>
@@ -81,7 +84,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-10 items-center gap-1 text-xs font-medium text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
             >
-              Demo <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              Live demo <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               <span className="sr-only">(opens in a new tab)</span>
             </a>
           )}
@@ -92,7 +95,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-10 items-center gap-1 text-xs font-medium text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
             >
-              <GithubIcon className="h-4 w-4" /> Source
+              <GithubIcon className="h-4 w-4" /> Source code
               <span className="sr-only">(opens in a new tab)</span>
             </a>
           )}

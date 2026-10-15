@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react';
 type Theme = 'light' | 'dark' | 'system';
 
 const options: Array<{ value: Theme; label: string; icon: string }> = [
-  { value: 'light', label: 'Terang', icon: '☼' },
-  { value: 'dark', label: 'Gelap', icon: '◐' },
-  { value: 'system', label: 'Sistem', icon: '◌' },
+  { value: 'light', label: 'Light', icon: '☼' },
+  { value: 'dark', label: 'Dark', icon: '◐' },
+  { value: 'system', label: 'System', icon: '◌' },
 ];
 
 export default function AdminThemeToggle() {
@@ -27,9 +27,9 @@ export default function AdminThemeToggle() {
   }
 
   return (
-    <div className="admin-theme-control" aria-label="Tema panel admin">
-      <span className="admin-theme-label">Tema</span>
-      <div className="admin-theme-options" role="group" aria-label="Pilih tema">
+    <div className="admin-theme-control" aria-label="Admin theme">
+      <span className="admin-theme-label">Theme</span>
+      <div className="admin-theme-options" role="group" aria-label="Choose a theme">
         {options.map((option) => (
           <button
             key={option.value}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,10 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
   const router = useRouter();
   const supabase = createClient();
 
+  const [profileId, setProfileId] = useState<string | null>(
+    initialProfile && initialProfile.id !== 'fallback' ? initialProfile.id : null
+  );
+
   const [draft, setDraft] = useState<Draft>(() => {
     if (!initialProfile) return EMPTY;
     const { id, updated_at, ...rest } = initialProfile;
@@ -47,39 +51,49 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
     const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert: false });
 
     if (error) {
-      toast.error(`Berkas gagal diunggah: ${error.message}`);
+      toast.error(`Upload failed: ${error.message}`);
       setUploading(null);
       return;
     }
 
     const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
     set(kind === 'avatar' ? 'avatar_url' : 'cv_url', data.publicUrl);
-    toast.success('Berkas terunggah. Simpan profil untuk menerapkannya.');
+    toast.success('File uploaded. Save your profile to publish the change.');
     setUploading(null);
   }
 
   async function save() {
     if (!draft.full_name.trim()) {
-      toast.error('Nama wajib diisi.');
+      toast.error('Name is required.');
       return;
     }
 
     setSaving(true);
 
-    const payload = { ...draft, full_name: draft.full_name.trim() };
+    const payload = {
+      ...draft,
+      full_name: draft.full_name.trim(),
+      updated_at: new Date().toISOString(),
+    };
 
-    const { error } = initialProfile
-      ? await supabase.from('profile').update(payload).eq('id', initialProfile.id)
-      : await supabase.from('profile').insert(payload);
+    const query = profileId
+      ? supabase.from('profile').update(payload).eq('id', profileId).select().maybeSingle()
+      : supabase.from('profile').insert(payload).select().maybeSingle();
+
+    const { data, error } = await query;
 
     setSaving(false);
 
     if (error) {
-      toast.error(`Gagal menyimpan: ${error.message}`);
+      toast.error(`Save failed: ${error.message}`);
       return;
     }
 
-    toast.success('Profil tersimpan dan sudah tampil di halaman utama.');
+    if (data?.id) {
+      setProfileId(data.id);
+    }
+
+    toast.success('Profile saved and published on the home page.');
     router.refresh();
   }
 
@@ -107,28 +121,31 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
   return (
     <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <div className="admin-card">
-        <h2 className="mb-5 font-display text-lg font-bold text-admin-text">Identitas</h2>
+        <h2 className="mb-5 font-display text-lg font-bold text-admin-text">Home page content</h2>
 
         <div className="space-y-4">
-          {text('full_name', 'Nama lengkap', 'Aristo Decky Susilo')}
-          {text('role_title', 'Jabatan', 'IT Support & Application Support')}
+          {text('full_name', 'Full name', 'Aristo Decky Susilo')}
+          {text('role_title', 'Professional title', 'IT Support & Application Support')}
 
           <div>
             <label htmlFor="tagline" className="admin-label">
-              Tagline
+              Home introduction
             </label>
             <input
               id="tagline"
               className="admin-input"
               value={draft.tagline}
               onChange={(e) => set('tagline', e.target.value)}
-              placeholder="Satu kalimat yang menggambarkan cara kamu bekerja."
+              placeholder="A concise, professional introduction in English."
             />
+            <p className="mt-1.5 font-body text-xs text-admin-muted">
+              Appears directly below your name on the home page. Keep it to one clear sentence.
+            </p>
           </div>
 
           <div>
             <label htmlFor="bio" className="admin-label">
-              Bio
+              Professional summary
             </label>
             <textarea
               id="bio"
@@ -136,23 +153,25 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
               className="admin-input resize-y leading-relaxed"
               value={draft.bio}
               onChange={(e) => set('bio', e.target.value)}
-              placeholder="Ringkasan pengalaman, sistem yang pernah ditangani, dan kekuatan utama."
+              placeholder="Summarize your support experience, systems you have worked with, and key strengths."
             />
-            <p className="mt-1.5 font-body text-xs text-admin-muted">{draft.bio.length} karakter</p>
+            <p className="mt-1.5 font-body text-xs text-admin-muted">
+              Optional supporting paragraph on the home page. {draft.bio.length} characters.
+            </p>
           </div>
 
           <button onClick={save} disabled={saving || uploading !== null} className="admin-btn-primary w-full">
-            {saving ? 'Menyimpan…' : 'Simpan profil'}
+            {saving ? 'Saving…' : 'Save profile'}
           </button>
         </div>
       </div>
 
       <div className="space-y-6">
         <div className="admin-card">
-          <h2 className="mb-5 font-display text-lg font-bold text-admin-text">Kontak</h2>
+          <h2 className="mb-5 font-display text-lg font-bold text-admin-text">Contact details</h2>
           <div className="space-y-4">
-            {text('location', 'Lokasi', 'Sunter, Jakarta Utara')}
-            {text('email', 'Email', 'nama@email.com', 'email')}
+            {text('location', 'Location', 'North Jakarta')}
+            {text('email', 'Email', 'name@example.com', 'email')}
             {text('phone', 'WhatsApp', '08xxxxxxxxxx', 'tel')}
             {text('github_url', 'GitHub', 'https://github.com/…')}
             {text('linkedin_url', 'LinkedIn', 'https://linkedin.com/in/…')}
@@ -160,15 +179,15 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
         </div>
 
         <div className="admin-card">
-          <h2 className="mb-5 font-display text-lg font-bold text-admin-text">Berkas</h2>
+          <h2 className="mb-5 font-display text-lg font-bold text-admin-text">Files</h2>
 
           <div className="space-y-5">
             <div>
-              <span className="admin-label">Foto profil</span>
+              <span className="admin-label">Profile photo</span>
               <div className="flex items-center gap-3">
                 {draft.avatar_url && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={draft.avatar_url} alt="Pratinjau foto" className="h-14 w-14 rounded-full border border-admin-border object-cover" />
+                  <img src={draft.avatar_url} alt="Profile photo preview" className="h-14 w-14 rounded-full border border-admin-border object-cover" />
                 )}
                 <input
                   type="file"
@@ -185,7 +204,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
             </div>
 
             <div>
-              <span className="admin-label">CV (PDF)</span>
+              <span className="admin-label">Resume (PDF)</span>
               <input
                 type="file"
                 accept="application/pdf"
@@ -199,10 +218,10 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
               />
               {draft.cv_url && (
                 <a href={draft.cv_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-body text-xs text-admin-accent hover:underline">
-                  Lihat CV yang terunggah
+                  View uploaded resume
                 </a>
               )}
-              {uploading === 'cv' && <p className="mt-2 font-body text-xs text-admin-muted">Mengunggah…</p>}
+              {uploading === 'cv' && <p className="mt-2 font-body text-xs text-admin-muted">Uploading…</p>}
             </div>
           </div>
         </div>

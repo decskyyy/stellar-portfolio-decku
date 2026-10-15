@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import type { Profile, Project, Skill } from '@/lib/types';
 import StarRating from '@/components/site/StarRating';
+import { normalizePortfolioCopy } from '@/lib/portfolio-copy';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,9 @@ export default async function AdminHome() {
     supabase.from('projects').select('*').order('updated_at', { ascending: false }),
   ]);
 
-  const profile = profileRes.data as Profile | null;
+  const profile = profileRes.data
+    ? normalizePortfolioCopy(profileRes.data as Profile)
+    : null;
   const skills = (skillsRes.data as Skill[] | null) ?? [];
   const projects = (projectsRes.data as Project[] | null) ?? [];
   const initials = profile?.full_name
@@ -26,9 +29,9 @@ export default async function AdminHome() {
     .toUpperCase() || 'A';
 
   const cards = [
-    { label: 'Proyek', value: projects.length, href: '/admin/projects', action: 'Kelola proyek' },
-    { label: 'Keahlian', value: skills.length, href: '/admin/skills', action: 'Kelola keahlian' },
-    { label: 'Unggulan', value: projects.filter((p) => p.featured).length, href: '/admin/projects', action: 'Atur unggulan' },
+    { label: 'Projects', value: projects.length, href: '/admin/projects', action: 'Manage projects' },
+    { label: 'Skills', value: skills.length, href: '/admin/skills', action: 'Manage skills' },
+    { label: 'Featured', value: projects.filter((p) => p.featured).length, href: '/admin/projects', action: 'Manage featured' },
   ];
 
   return (
@@ -40,7 +43,7 @@ export default async function AdminHome() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={profile.avatar_url}
-                alt={`Foto profil ${profile.full_name}`}
+                alt={`${profile.full_name} profile photo`}
                 width={72}
                 height={72}
                 className="h-16 w-16 shrink-0 rounded-2xl border border-admin-border object-cover shadow-md shadow-slate-200 sm:h-[4.5rem] sm:w-[4.5rem]"
@@ -58,16 +61,16 @@ export default async function AdminHome() {
                 Dashboard
               </span>
               <h1 className="mt-2 font-display text-2xl font-bold text-admin-text">
-                Halo{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}.
+                Welcome{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}.
               </h1>
               <p className="mt-1.5 font-body text-sm text-admin-muted">
-                {profile?.role_title || 'Lengkapi profil kamu'} · Semua perubahan langsung tampil di halaman utama.
+                {profile?.role_title || 'Complete your profile'} · Changes appear on your portfolio site immediately.
               </p>
             </div>
           </div>
 
           <Link href="/admin/profile" className="admin-btn-primary !px-3.5 !py-2 !text-xs uppercase tracking-[0.16em]">
-            Edit profil
+            Edit profile
           </Link>
         </div>
       </div>
@@ -87,43 +90,43 @@ export default async function AdminHome() {
 
       <div className="admin-card">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="font-display text-lg font-bold text-admin-text">Status profil</h2>
+          <h2 className="font-display text-lg font-bold text-admin-text">Profile status</h2>
           <Link href="/admin/profile" className="admin-btn-secondary !px-3 !py-1.5 !text-xs">
-            Ubah profil
+            Edit profile
           </Link>
         </div>
 
         {profile ? (
           <dl className="mt-5 grid gap-5 sm:grid-cols-2">
             <div className="admin-inset rounded-2xl border p-4">
-              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Nama</dt>
+              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Name</dt>
               <dd className="mt-2 font-body text-sm text-admin-text">{profile.full_name || '—'}</dd>
             </div>
             <div className="admin-inset rounded-2xl border p-4">
-              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Jabatan</dt>
+              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Title</dt>
               <dd className="mt-2 font-body text-sm text-admin-text">{profile.role_title || '—'}</dd>
             </div>
             <div className="admin-inset rounded-2xl border p-4 sm:col-span-2">
-              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Tagline</dt>
+              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Home introduction</dt>
               <dd className="mt-2 font-body text-sm text-admin-text">{profile.tagline || '—'}</dd>
             </div>
             <div className="admin-inset rounded-2xl border p-4 sm:col-span-2">
-              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Bio</dt>
+              <dt className="font-body text-xs font-medium uppercase tracking-[0.18em] text-admin-muted">Professional summary</dt>
               <dd className="mt-2 line-clamp-3 font-body text-sm leading-relaxed text-admin-muted">
-                {profile.bio || 'Belum diisi.'}
+                {profile.bio || 'Not provided.'}
               </dd>
             </div>
           </dl>
         ) : (
           <p className="mt-4 font-body text-sm text-admin-muted">
-            Profil belum dibuat. Buka halaman Profil dan simpan data pertama kamu.
+            No profile found. Open the Profile page to add your details.
           </p>
         )}
       </div>
 
       {projects.length > 0 && (
         <div className="admin-card">
-          <h2 className="font-display text-lg font-bold text-admin-text">Diubah terakhir</h2>
+          <h2 className="font-display text-lg font-bold text-admin-text">Recently updated</h2>
           <ul className="mt-4 space-y-3">
             {projects.slice(0, 5).map((p) => (
               <li key={p.id} className="admin-inset flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-3 py-3 last:border-0 last:pb-0">
@@ -131,7 +134,7 @@ export default async function AdminHome() {
                 <div className="flex items-center gap-4">
                   <StarRating value={p.rating} size={13} />
                   <span className="font-body text-xs text-admin-muted">
-                    {new Date(p.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {new Date(p.updated_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
               </li>

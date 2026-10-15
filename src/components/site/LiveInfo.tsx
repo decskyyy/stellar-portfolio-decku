@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { portfolioSpring } from "@/lib/motion";
 
 const timeFormatter = new Intl.DateTimeFormat(undefined, {
   hour: "2-digit",
@@ -38,17 +39,16 @@ export default function LiveInfo() {
   }, []);
 
   const reveal = {
-    initial: shouldReduceMotion ? false : { opacity: 0, x: -20 },
+    initial: { opacity: 0, x: -20 },
     animate: { opacity: 1, x: 0 },
     transition: {
-      duration: shouldReduceMotion ? 0 : 0.6,
-      ease: "easeOut" as const,
+      ...(shouldReduceMotion ? { duration: 0 } : portfolioSpring),
     },
   };
 
   return (
     <>
-      <header className="mobile-clock-header sticky top-0 z-40 border-b border-base-muted/70 bg-base/90 backdrop-blur-md md:hidden">
+      <header className="mobile-clock-header sticky top-0 z-40 border-b border-base-muted/70 bg-canvas/90 backdrop-blur-md md:hidden">
         <div
           className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-3 px-4 sm:px-6"
           aria-label={now ? dateFormatter.format(now) : "Local date and time"}
@@ -69,7 +69,7 @@ export default function LiveInfo() {
         aria-label={
           now
             ? `${timeFormatter.format(now)}, ${dateFormatter.format(now)}`
-            : "Waktu lokal"
+            : "Local time"
         }
         {...reveal}
       >
@@ -82,7 +82,7 @@ export default function LiveInfo() {
       </motion.div>
       <motion.div
         className="live-info live-info-screen"
-        aria-label={`Ukuran layar ${viewport.width} kali ${viewport.height}`}
+        aria-label={`Screen size ${viewport.width} by ${viewport.height}`}
         {...reveal}
       >
         {viewport.width} x {viewport.height}

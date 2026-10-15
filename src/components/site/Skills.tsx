@@ -19,8 +19,12 @@ import {
   Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { getPublicSkillCategory } from "@/lib/skill-category";
+import {
+  getPublicSkillCategory,
+  getPublicSkillName,
+} from "@/lib/skill-category";
 import Reveal from "./Reveal";
+import SkillLogo from "./SkillLogo";
 
 const categoryIcons: Record<string, LucideIcon> = {
   "sistem & jaringan": Server,
@@ -81,11 +85,10 @@ export default function Skills({ skills }: { skills: Skill[] }) {
   return (
     <section className="container scroll-mt-24 py-12 md:py-14">
       <Reveal className="mx-auto max-w-3xl">
-        <h2 className="portfolio-section-label">Keahlian</h2>
+        <h2 className="portfolio-section-label">Skills</h2>
         {skills.length === 0 && (
           <p className="mt-4 text-sm leading-7 text-ink-muted">
-            Placeholder: cantumkan keahlian yang relevan dengan dukungan pengguna,
-            aplikasi, sistem, dan perangkat yang benar-benar pernah digunakan.
+            No skills have been added yet.
           </p>
         )}
       </Reveal>
@@ -108,10 +111,16 @@ export default function Skills({ skills }: { skills: Skill[] }) {
                     return (
                       <li
                         key={skill.id}
-                        className="inline-flex max-w-full items-center gap-2 rounded-lg border border-base-muted/70 bg-base/60 px-2.5 py-1.5 text-sm text-ink-muted"
+                        className="inline-flex max-w-full items-center gap-2 rounded-lg border border-base-muted/70 bg-canvas/60 px-2.5 py-1.5 text-sm text-ink-muted"
                       >
-                        <SkillIcon className="h-4 w-4 shrink-0 text-accent-soft" aria-hidden="true" />
-                        <span className="break-words">{skill.name}</span>
+                        <SkillLogo
+                          name={skill.name}
+                          fallback={SkillIcon}
+                          className="h-4 w-4 shrink-0 text-accent-soft"
+                        />
+                        <span className="break-words">
+                          {getPublicSkillName(skill.name)}
+                        </span>
                       </li>
                     );
                   })}

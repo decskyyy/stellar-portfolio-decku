@@ -6,10 +6,27 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import AdminThemeToggle from '@/components/admin/AdminThemeToggle';
 
+function getSafeAdminNextPath(value: string | null): string {
+  const fallback = '/admin';
+  if (!value?.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return fallback;
+  }
+
+  const target = new URL(value, 'https://portfolio.local');
+  if (
+    target.origin !== 'https://portfolio.local' ||
+    (target.pathname !== '/admin' && !target.pathname.startsWith('/admin/'))
+  ) {
+    return fallback;
+  }
+
+  return `${target.pathname}${target.search}${target.hash}`;
+}
+
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get('next') || '/admin';
+  const next = getSafeAdminNextPath(params.get('next'));
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +43,7 @@ function LoginForm() {
     if (authError) {
       setError(
         authError.message.toLowerCase().includes('invalid')
-          ? 'Email atau password tidak cocok. Coba lagi.'
+          ? 'Email or password is incorrect. Please try again.'
           : authError.message
       );
       setLoading(false);
@@ -40,10 +57,10 @@ function LoginForm() {
   return (
     <div className="admin-card w-full max-w-md">
       <div className="mb-8">
-        <span className="font-body text-xs font-semibold uppercase tracking-wide text-admin-accent">Akses terbatas</span>
-        <h1 className="mt-2 font-display text-2xl font-bold text-admin-text">Masuk admin</h1>
+        <span className="font-body text-xs font-semibold uppercase tracking-wide text-admin-accent">Restricted access</span>
+        <h1 className="mt-2 font-display text-2xl font-bold text-admin-text">Admin sign in</h1>
         <p className="mt-2 font-body text-sm text-admin-muted">
-          Gunakan akun Supabase yang terdaftar untuk mengelola isi portfolio.
+          Sign in with your registered account to manage your portfolio.
         </p>
       </div>
 
@@ -60,7 +77,7 @@ function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder="nama@email.com"
+            placeholder="name@example.com"
           />
         </div>
 
@@ -87,12 +104,12 @@ function LoginForm() {
         )}
 
         <button onClick={handleSubmit} disabled={loading || !email || !password} className="admin-btn-primary w-full">
-          {loading ? 'Memeriksa…' : 'Masuk'}
+          {loading ? 'Signing in…' : 'Sign in'}
         </button>
       </div>
 
       <Link href="/" className="mt-6 block text-center font-body text-sm text-admin-muted transition hover:text-admin-text">
-        Kembali ke portfolio
+        Back to portfolio
       </Link>
     </div>
   );
@@ -112,17 +129,17 @@ export default function LoginPage() {
                 <span className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-200">
                   Admin access
                 </span>
-                <h2 className="mt-6 max-w-sm text-3xl font-bold tracking-tight">Kelola portfolio dengan lebih tenang dan rapi.</h2>
+                <h2 className="mt-6 max-w-sm text-3xl font-bold tracking-tight">Manage your portfolio with clarity and confidence.</h2>
               </div>
 
               <div className="space-y-4 text-sm text-slate-300">
                 <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/30 text-xs font-semibold text-indigo-100">01</span>
-                  <span>Ubah profil, proyek, dan keahlian dari satu dashboard.</span>
+                  <span>Update your profile, projects, and skills from one dashboard.</span>
                 </div>
                 <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500/30 text-xs font-semibold text-cyan-100">02</span>
-                  <span>Perubahan langsung tercermin di halaman portfolio utama.</span>
+                  <span>Your changes appear on the portfolio site immediately.</span>
                 </div>
               </div>
             </div>

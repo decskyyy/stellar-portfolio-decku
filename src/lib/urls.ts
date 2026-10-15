@@ -21,7 +21,13 @@ export function profileUrl(
   value: string | null | undefined,
   provider: "github" | "linkedin",
 ): string | null {
-  const safeUrl = safeExternalUrl(value);
+  const candidate = value?.trim();
+  if (!candidate) return null;
+
+  const normalizedValue = /^[a-z][a-z\d+.-]*:/i.test(candidate)
+    ? candidate
+    : `https://${candidate.replace(/^\/\//, "")}`;
+  const safeUrl = safeExternalUrl(normalizedValue);
   if (!safeUrl) return null;
 
   const url = new URL(safeUrl);

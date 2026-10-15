@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const rate = applyRateLimit(ip);
     if (!rate.ok) {
       const res = NextResponse.json(
-        { error: `Terlalu banyak permintaan. Coba lagi dalam ${rate.retryAfter} detik.` },
+        { error: `Too many requests. Try again in ${rate.retryAfter} seconds.` },
         { status: 429 }
       );
       res.headers.set('Retry-After', String(rate.retryAfter ?? 60));
@@ -55,19 +55,19 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file');
 
     if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: 'Berkas CV tidak ditemukan.' }, { status: 400 });
+      return NextResponse.json({ error: 'Resume file was not provided.' }, { status: 400 });
     }
     if (file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Hanya file PDF yang didukung.' }, { status: 400 });
+      return NextResponse.json({ error: 'Only PDF files are supported.' }, { status: 400 });
     }
     if (file.size > MAX_FILE_BYTES) {
       return NextResponse.json(
-        { error: `Ukuran file terlalu besar (${(file.size / 1024 / 1024).toFixed(2)} MB). Maksimal 5 MB.` },
+        { error: `File is too large (${(file.size / 1024 / 1024).toFixed(2)} MB). Maximum size is 5 MB.` },
         { status: 413 }
       );
     }
     if (file.size === 0) {
-      return NextResponse.json({ error: 'File kosong.' }, { status: 400 });
+      return NextResponse.json({ error: 'The file is empty.' }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     if (!data.text || data.text.trim().length < 20) {
       return NextResponse.json(
-        { error: 'Teks tidak terbaca dari PDF ini (kemungkinan hasil scan/gambar, bukan teks asli).' },
+        { error: 'No readable text found in this PDF. It may be a scan or image rather than a text document.' },
         { status: 422 }
       );
     }
@@ -94,6 +94,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error('parse-cv error:', err);
-    return NextResponse.json({ error: 'Gagal memproses PDF. Coba file lain atau isi manual.' }, { status: 500 });
+    return NextResponse.json({ error: 'Could not process the PDF. Try another file or enter the details manually.' }, { status: 500 });
   }
 }

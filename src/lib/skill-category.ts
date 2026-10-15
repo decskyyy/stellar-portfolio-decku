@@ -35,10 +35,31 @@ export function inferSkillCategory(name: string): string {
 
 export function getPublicSkillCategory(skill: Pick<Skill, "name" | "category">): string {
   const category = skill.category.trim();
+  const legacyEnglishLabels: Record<string, string> = {
+    "sistem & jaringan": "Systems & Networking",
+    "sistem dan jaringan": "Systems & Networking",
+    "lainnya": "Other",
+    "tata kelola & keamanan": "Governance & Security",
+    "produktivitas & kolaborasi": "Productivity & Collaboration",
+    "aplikasi bisnis & sistem enterprise":
+      "Business Applications & Enterprise Systems",
+    "enterprise systems": "Business Applications & Enterprise Systems",
+    "governance": "Governance & Security",
+    "web": "Web Technologies",
+  };
 
   if (!category || isLegacyImportCategory(category)) {
     return inferSkillCategory(skill.name);
   }
 
-  return category;
+  return legacyEnglishLabels[category.toLowerCase()] ?? category;
+}
+
+export function getPublicSkillName(name: string): string {
+  const legacyEnglishNames: Record<string, string> = {
+    "user training & dokumentasi": "User Training & Documentation",
+    "eskalasi lintas tim": "Cross-Team Escalation",
+  };
+
+  return legacyEnglishNames[name.trim().toLowerCase()] ?? name;
 }

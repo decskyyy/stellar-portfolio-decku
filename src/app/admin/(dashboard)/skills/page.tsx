@@ -15,9 +15,9 @@ export default async function AdminSkillsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-bold text-admin-text">Keahlian</h1>
+        <h1 className="font-display text-2xl font-bold text-admin-text">Skills</h1>
         <p className="mt-1.5 font-body text-sm text-admin-muted">
-          Dikelompokkan per kategori di halaman utama, diurutkan sesuai nomor urutan.
+          Skills are grouped by category and displayed in the order you choose.
         </p>
       </div>
       <SkillManager initialSkills={(data as Skill[] | null) ?? []} />

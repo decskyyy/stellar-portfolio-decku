@@ -22,7 +22,7 @@ Dua bahasa visual yang sengaja dipisah:
 ## 2. Jalankan di lokal
 
 ```bash
-cp .env.local.example .env.local   # lalu isi URL + anon key
+cp .env.example .env.local   # lalu isi URL + anon key
 npm install
 npm run dev
 ```
@@ -36,12 +36,12 @@ npm run dev
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | ya | URL project Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ya | Anon public key |
-| `NEXT_PUBLIC_ADMIN_EMAIL` | tidak | Kalau diisi, hanya email ini yang boleh masuk `/admin` meski ada akun Supabase lain |
+| `ADMIN_EMAIL` | tidak | Allowlist server-side untuk `/admin`; jika dipakai, selaraskan email yang sama dengan kebijakan RLS Supabase. |
 
 ## 4. Deploy ke Vercel
 
 1. Push ke GitHub, lalu **Import Project** di Vercel.
-2. Tambahkan ketiga variabel di atas pada **Environment Variables**.
+2. Tambahkan `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY` pada **Environment Variables**. Tambahkan `ADMIN_EMAIL` jika ingin membatasi akun yang dapat membuka `/admin`.
 3. Deploy. Tidak ada langkah build tambahan.
 4. Di Supabase → **Authentication** → **URL Configuration**, tambahkan domain Vercel ke *Site URL* dan *Redirect URLs*.
 
@@ -73,6 +73,7 @@ supabase/schema.sql                Skema, RLS, storage, data awal
 ## Cara kerja keamanan
 
 - Row Level Security aktif di ketiga tabel: siapa pun boleh **membaca** (halaman publik butuh ini), hanya user terautentikasi yang boleh menulis, mengubah, dan menghapus.
+- `ADMIN_EMAIL` hanya membatasi akses route melalui middleware. Kebijakan RLS tetap menjadi otoritas izin database; pastikan email admin cocok dengan kebijakan pada `supabase/schema.sql`, atau atur `app.admin_email` sesuai petunjuk di file tersebut.
 - Bucket `portfolio-assets` publik untuk dibaca, upload dan hapus hanya untuk user login.
 - `middleware.ts` mengalihkan setiap kunjungan ke `/admin/*` tanpa sesi valid ke halaman login, sekaligus merefresh token Supabase.
 - Anon key memang aman dipakai di browser — RLS yang menjaga datanya. Jangan pernah menaruh `service_role` key di project ini.

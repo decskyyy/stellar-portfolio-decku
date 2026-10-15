@@ -1,7 +1,7 @@
 "use client";
 
 import type { Experience } from "@/lib/types";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import DetailModal from "./DetailModal";
 import Reveal from "./Reveal";
 
@@ -9,7 +9,7 @@ function formatDate(d: string | null) {
   if (!d) return "";
   const date = new Date(d);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("id-ID", {
+  return date.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
@@ -17,6 +17,7 @@ function formatDate(d: string | null) {
 
 export default function ExperienceTimeline({ items }: { items: Experience[] }) {
   const [selected, setSelected] = useState<Experience | null>(null);
+  const closeDetails = useCallback(() => setSelected(null), []);
 
   return (
     <>
@@ -25,12 +26,10 @@ export default function ExperienceTimeline({ items }: { items: Experience[] }) {
         className="container scroll-mt-24 py-12 md:py-14"
       >
         <Reveal className="mx-auto max-w-3xl">
-          <h2 className="portfolio-section-label">Pengalaman profesional</h2>
+          <h2 className="portfolio-section-label">Professional experience</h2>
           {items.length === 0 && (
             <p className="mt-4 text-sm leading-7 text-ink-muted">
-              Placeholder: tambahkan riwayat kerja IT Support atau Application
-              Support, termasuk jabatan, perusahaan, tanggal, dan kontribusi yang
-              dapat diverifikasi.
+              No professional experience has been added yet.
             </p>
           )}
         </Reveal>
@@ -66,13 +65,13 @@ export default function ExperienceTimeline({ items }: { items: Experience[] }) {
                         onClick={() => setSelected(item)}
                         className="mt-2 inline-flex min-h-10 items-center text-sm font-medium text-accent-soft underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-soft"
                       >
-                        Role details
+                        View role details
                       </button>
                     )}
                   </div>
                   <p className="text-xs text-ink-faint sm:pt-1 sm:text-right">
                     {formatDate(item.start_date)} &ndash;{" "}
-                    {item.is_current ? "Sekarang" : formatDate(item.end_date)}
+                    {                    item.is_current ? "Present" : formatDate(item.end_date)}
                   </p>
                 </article>
               </Reveal>
@@ -82,7 +81,7 @@ export default function ExperienceTimeline({ items }: { items: Experience[] }) {
       </section>
       <DetailModal
         open={Boolean(selected)}
-        onClose={() => setSelected(null)}
+        onClose={closeDetails}
         title={selected?.role_title ?? ""}
         eyebrow={selected?.company}
       >

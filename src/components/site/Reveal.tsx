@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { portfolioSpring } from '@/lib/motion';
 
 /** Pembungkus animasi: fade + geser naik saat elemen masuk viewport. */
 export default function Reveal({
@@ -18,13 +19,12 @@ export default function Reveal({
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y }}
+      initial={{ opacity: 0, y }}
       whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{
-        duration: shouldReduceMotion ? 0 : 0.6,
+        ...(shouldReduceMotion ? { duration: 0 } : portfolioSpring),
         delay: shouldReduceMotion ? 0 : delay,
-        ease: [0.21, 0.47, 0.32, 0.98],
       }}
       className={className}
     >

@@ -16,9 +16,9 @@ export default async function AdminProjectsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-bold text-admin-text">Proyek</h1>
+        <h1 className="font-display text-2xl font-bold text-admin-text">Projects</h1>
         <p className="mt-1.5 font-body text-sm text-admin-muted">
-          Tambah, ubah, dan hapus kartu proyek yang tampil di halaman utama.
+          Add, edit, and remove projects displayed on your portfolio.
         </p>
       </div>
       <ProjectManager initialProjects={(data as Project[] | null) ?? []} />

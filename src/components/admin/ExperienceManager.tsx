@@ -37,7 +37,7 @@ type DraftRow = ExperienceDraft & { key: string };
 
 function formatDate(d: string | null) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
 export default function ExperienceManager({ initialExperience }: { initialExperience: Experience[] }) {
@@ -77,7 +77,7 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
 
   async function save() {
     if (!form.company.trim() || !form.role_title.trim()) {
-      toast.error('Nama perusahaan dan jabatan wajib diisi.');
+      toast.error('Company and job title are required.');
       return;
     }
     setSaving(true);
@@ -101,11 +101,11 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
     setSaving(false);
 
     if (error) {
-      toast.error(`Gagal menyimpan: ${error.message}`);
+      toast.error(`Save failed: ${error.message}`);
       return;
     }
 
-    toast.success(editing ? 'Pengalaman diperbarui.' : 'Pengalaman ditambahkan.');
+    toast.success(editing ? 'Experience updated.' : 'Experience added.');
     reset();
     router.refresh();
   }
@@ -114,11 +114,11 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
     const { error } = await supabase.from('experience').delete().eq('id', id);
     setConfirmId(null);
     if (error) {
-      toast.error(`Gagal menghapus: ${error.message}`);
+      toast.error(`Delete failed: ${error.message}`);
       return;
     }
     if (form.id === id) reset();
-    toast.success('Pengalaman dihapus.');
+    toast.success('Experience deleted.');
     router.refresh();
   }
 
@@ -140,7 +140,7 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
 
   async function saveDraft(draft: DraftRow) {
     if (!draft.company.trim() || !draft.role_title.trim()) {
-      toast.error('Lengkapi nama perusahaan dan jabatan dulu.');
+      toast.error('Complete the company and job title first.');
       return;
     }
     setSavingDraftKey(draft.key);
@@ -157,11 +157,11 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
     setSavingDraftKey(null);
 
     if (error) {
-      toast.error(`Gagal menyimpan: ${error.message}`);
+      toast.error(`Save failed: ${error.message}`);
       return;
     }
 
-    toast.success('Pengalaman dari CV tersimpan.');
+    toast.success('Experience from the resume has been saved.');
     discardDraft(draft.key);
     router.refresh();
   }
@@ -175,7 +175,7 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
     }));
     const { error } = await supabase.from('skills').insert(rows);
     if (error) {
-      toast.error(`Sebagian/semua skill gagal ditambahkan: ${error.message}`);
+      toast.error(`Could not add some or all skills: ${error.message}`);
       return;
     }
     router.refresh();
@@ -188,26 +188,26 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
       {drafts.length > 0 && (
         <div className="space-y-3">
           <div className="admin-section-header">
-            <h2 className="font-display text-lg font-bold text-admin-text">Draf dari CV</h2>
-            <span className="admin-chip">{drafts.length} perlu review</span>
+            <h2 className="font-display text-lg font-bold text-admin-text">Resume drafts</h2>
+            <span className="admin-chip">{drafts.length} to review</span>
           </div>
           {drafts.map((d) => (
             <div key={d.key} className="admin-card admin-status-warning">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="admin-label">Jabatan</label>
+                  <label className="admin-label">Job title</label>
                   <input className="admin-input" value={d.role_title} onChange={(e) => updateDraft(d.key, { role_title: e.target.value })} />
                 </div>
                 <div>
-                  <label className="admin-label">Perusahaan</label>
+                  <label className="admin-label">Company</label>
                   <input className="admin-input" value={d.company} onChange={(e) => updateDraft(d.key, { company: e.target.value })} />
                 </div>
                 <div>
-                  <label className="admin-label">Mulai</label>
+                  <label className="admin-label">Start date</label>
                   <input type="date" className="admin-input" value={d.start_date ?? ''} onChange={(e) => updateDraft(d.key, { start_date: e.target.value })} />
                 </div>
                 <div>
-                  <label className="admin-label">Selesai</label>
+                  <label className="admin-label">End date</label>
                   <input
                     type="date"
                     className="admin-input"
@@ -217,21 +217,21 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
                   />
                   <label className="mt-1.5 flex items-center gap-2 font-body text-xs text-admin-muted">
                     <input type="checkbox" checked={d.is_current} onChange={(e) => updateDraft(d.key, { is_current: e.target.checked })} className="accent-admin-accent" />
-                    Masih berlangsung
+                    Current role
                   </label>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="admin-label">Deskripsi (teks mentah hasil deteksi, edit bebas)</label>
+                  <label className="admin-label">Description (detected text; review and edit)</label>
                   <textarea rows={2} className="admin-input resize-y" value={d.description} onChange={(e) => updateDraft(d.key, { description: e.target.value })} />
                 </div>
               </div>
-              <p className="mt-2 font-body text-[11px] text-admin-muted">Pola tanggal asli: “{d.raw_date_text}” — cek lagi kalau ada yang aneh.</p>
+              <p className="mt-2 font-body text-[11px] text-admin-muted">Detected date text: “{d.raw_date_text}” — please verify it.</p>
               <div className="mt-3 flex gap-2">
                 <button onClick={() => saveDraft(d)} disabled={savingDraftKey === d.key} className="admin-btn-primary !px-3 !py-1.5 !text-xs">
-                  {savingDraftKey === d.key ? 'Menyimpan…' : 'Simpan pengalaman ini'}
+                  {savingDraftKey === d.key ? 'Saving…' : 'Save this experience'}
                 </button>
                 <button onClick={() => discardDraft(d.key)} className="admin-btn-secondary !px-3 !py-1.5 !text-xs">
-                  Buang
+                  Discard
                 </button>
               </div>
             </div>
@@ -242,35 +242,35 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
       <div className="grid gap-6 lg:grid-cols-[1fr_1.05fr]">
         <div className="admin-card h-fit">
           <div className="admin-section-header">
-            <h2 className="font-display text-lg font-bold text-admin-text">{editing ? 'Ubah pengalaman' : 'Tambah pengalaman'}</h2>
+            <h2 className="font-display text-lg font-bold text-admin-text">{editing ? 'Edit experience' : 'Add experience'}</h2>
             {editing && (
               <button onClick={reset} className="font-body text-xs font-medium text-admin-muted hover:text-admin-text">
-                Batal
+                Cancel
               </button>
             )}
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="admin-label">Jabatan</label>
+              <label className="admin-label">Job title</label>
               <input className="admin-input" value={form.role_title} onChange={(e) => set('role_title', e.target.value)} placeholder="IT Support" />
             </div>
             <div>
-              <label className="admin-label">Perusahaan</label>
-              <input className="admin-input" value={form.company} onChange={(e) => set('company', e.target.value)} placeholder="PT Contoh Sejahtera" />
+              <label className="admin-label">Company</label>
+              <input className="admin-input" value={form.company} onChange={(e) => set('company', e.target.value)} placeholder="Example Company" />
             </div>
             <div>
-              <label className="admin-label">Lokasi (opsional)</label>
+              <label className="admin-label">Location (optional)</label>
               <input className="admin-input" value={form.location} onChange={(e) => set('location', e.target.value)} placeholder="Jakarta" />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="admin-label">Mulai</label>
+                <label className="admin-label">Start date</label>
                 <input type="date" className="admin-input" value={form.start_date} onChange={(e) => set('start_date', e.target.value)} />
               </div>
               <div>
-                <label className="admin-label">Selesai</label>
+                <label className="admin-label">End date</label>
                 <input
                   type="date"
                   className="admin-input"
@@ -283,34 +283,34 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
 
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={form.is_current} onChange={(e) => set('is_current', e.target.checked)} className="h-4 w-4 accent-admin-accent" />
-              <span className="font-body text-sm font-medium text-admin-text">Masih bekerja di sini</span>
+              <span className="font-body text-sm font-medium text-admin-text">Current role</span>
             </label>
 
             <div>
-              <label className="admin-label">Deskripsi</label>
+              <label className="admin-label">Description</label>
               <textarea rows={4} className="admin-input resize-y" value={form.description} onChange={(e) => set('description', e.target.value)} />
             </div>
 
             <div>
-              <label className="admin-label">Urutan tampil</label>
+              <label className="admin-label">Display order</label>
               <input type="number" className="admin-input" value={form.sort_order} onChange={(e) => set('sort_order', Number(e.target.value))} />
             </div>
 
             <button onClick={save} disabled={saving} className="admin-btn-primary w-full">
-              {saving ? 'Menyimpan…' : editing ? 'Simpan perubahan' : 'Tambahkan pengalaman'}
+              {saving ? 'Saving…' : editing ? 'Save changes' : 'Add experience'}
             </button>
           </div>
         </div>
 
         <div>
           <div className="admin-section-header mb-4">
-            <h2 className="font-display text-lg font-bold text-admin-text">Riwayat tersimpan</h2>
-            <span className="admin-chip">{initialExperience.length} entri</span>
+            <h2 className="font-display text-lg font-bold text-admin-text">Saved experience</h2>
+            <span className="admin-chip">{initialExperience.length} roles</span>
           </div>
 
           {initialExperience.length === 0 ? (
             <div className="admin-card text-center">
-              <p className="font-body text-sm text-admin-muted">Belum ada riwayat pekerjaan. Isi manual atau upload CV di atas.</p>
+              <p className="font-body text-sm text-admin-muted">No experience added yet. Add a role manually or import your resume above.</p>
             </div>
           ) : (
             <ul className="space-y-3">
@@ -321,21 +321,21 @@ export default function ExperienceManager({ initialExperience }: { initialExperi
                       <h3 className="font-display text-sm font-bold text-admin-text">{e.role_title}</h3>
                       <p className="font-body text-sm text-admin-muted">{e.company}</p>
                       <p className="mt-1 font-body text-xs text-admin-muted">
-                        {formatDate(e.start_date)} – {e.is_current ? 'Sekarang' : formatDate(e.end_date)}
+                        {formatDate(e.start_date)} – {e.is_current ? 'Present' : formatDate(e.end_date)}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col gap-1.5">
                       <button onClick={() => startEdit(e)} className="admin-btn-secondary !px-3 !py-1 !text-xs">
-                        Ubah
+                        Edit
                       </button>
                       {confirmId === e.id ? (
                         <div className="flex gap-1.5">
-                          <button onClick={() => remove(e.id)} className="admin-btn-danger !px-2 !py-1 !text-[11px]">Yakin</button>
-                          <button onClick={() => setConfirmId(null)} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">Batal</button>
+                          <button onClick={() => remove(e.id)} className="admin-btn-danger !px-2 !py-1 !text-[11px]">Confirm</button>
+                          <button onClick={() => setConfirmId(null)} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">Cancel</button>
                         </div>
                       ) : (
                         <button onClick={() => setConfirmId(e.id)} className="admin-btn-danger !px-3 !py-1 !text-xs">
-                          Hapus
+                          Delete
                         </button>
                       )}
                     </div>

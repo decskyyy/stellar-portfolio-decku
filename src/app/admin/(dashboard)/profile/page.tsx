@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Profile } from '@/lib/types';
 import ProfileForm from '@/components/admin/ProfileForm';
+import { normalizePortfolioCopy } from '@/lib/portfolio-copy';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,12 +17,16 @@ export default async function AdminProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-bold text-admin-text">Profil</h1>
+        <h1 className="font-display text-2xl font-bold text-admin-text">Profile</h1>
         <p className="mt-1.5 font-body text-sm text-admin-muted">
-          Nama, tagline, bio, dan kanal kontak yang tampil di hero halaman utama.
+          Edit the name, title, home introduction, professional summary, and contact details shown on your portfolio.
         </p>
       </div>
-      <ProfileForm initialProfile={(data as Profile | null) ?? null} />
+      <ProfileForm
+        initialProfile={
+          data ? normalizePortfolioCopy(data as Profile) : null
+        }
+      />
     </div>
   );
 }

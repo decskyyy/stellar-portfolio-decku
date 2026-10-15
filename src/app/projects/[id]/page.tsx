@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Code2 } from "lucide-react";
 import PublicShell from "@/components/site/PublicShell";
 import Reveal from "@/components/site/Reveal";
 import { GithubIcon } from "@/components/site/BrandIcon";
+import SkillLogo from "@/components/site/SkillLogo";
 import { getProfile, getProject } from "@/lib/site-data";
 import { profileUrl, safeExternalUrl } from "@/lib/urls";
 
@@ -20,7 +21,7 @@ export async function generateMetadata({
   const project = await getProject(params.id);
 
   return {
-    title: project?.title ?? "Proyek tidak ditemukan",
+    title: project?.title ?? "Project not found",
     description: project?.description,
   };
 }
@@ -50,9 +51,13 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           <h1 className="mt-3 break-words text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
             {project.title}
           </h1>
-          <p className="mt-4 whitespace-pre-line text-sm leading-7 text-ink-muted sm:text-base">
-            {project.description}
-          </p>
+          <section className="mt-6">
+            <h2 className="portfolio-section-label">Project overview</h2>
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-ink-muted sm:text-base">
+              {project.description?.trim() ||
+                "A project description has not been added yet."}
+            </p>
+          </section>
 
           {project.image_url && (
             <div className="mt-7 overflow-hidden rounded-xl border border-base-muted bg-base-surface">
@@ -74,9 +79,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 {project.tech_stack.map((tech) => (
                   <li
                     key={tech}
-                    className="rounded-full border border-base-muted px-3 py-1.5 text-xs text-ink-muted"
+                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-base-muted px-3 py-1.5 text-xs text-ink-muted"
                   >
-                    {tech}
+                    <SkillLogo
+                      name={tech}
+                      fallback={Code2}
+                      className="h-4 w-4 shrink-0 text-accent-soft"
+                    />
+                    <span className="break-words">{tech}</span>
                   </li>
                 ))}
               </ul>

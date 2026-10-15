@@ -19,12 +19,12 @@ function Star({ filled, size }: { filled: boolean; size: number }) {
   );
 }
 
-/** Indikator rating bintang emas 1–5. */
+/** Gold star rating indicator from 1 to 5. */
 export default function StarRating({ value, size = 16, showLabel = false }: Props) {
   const safe = Math.max(1, Math.min(5, Math.round(value || 0)));
 
   return (
-    <div className="flex items-center gap-1.5" role="img" aria-label={`Rating ${safe} dari 5`}>
+    <div className="flex items-center gap-1.5" role="img" aria-label={`Rating ${safe} out of 5`}>
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
           <Star key={i} filled={i <= safe} size={size} />

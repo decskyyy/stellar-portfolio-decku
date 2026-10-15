@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { STORAGE_BUCKET, type Project } from '@/lib/types';
 import StarRating from '@/components/site/StarRating';
+import SkillLogo from '@/components/site/SkillLogo';
+import { Code2 } from 'lucide-react';
 
 type FormState = {
   id: string | null;
@@ -44,6 +46,10 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const editing = form.id !== null;
+  const technologies = form.tech_stack
+    .split(',')
+    .map((technology) => technology.trim())
+    .filter(Boolean);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -81,20 +87,20 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
       .upload(path, file, { cacheControl: '3600', upsert: false });
 
     if (error) {
-      toast.error(`Gambar gagal diunggah: ${error.message}`);
+      toast.error(`Image upload failed: ${error.message}`);
       setUploading(false);
       return;
     }
 
     const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
     set('image_url', data.publicUrl);
-    toast.success('Gambar terunggah. Jangan lupa simpan proyeknya.');
+    toast.success('Image uploaded. Save the project to apply the change.');
     setUploading(false);
   }
 
   async function save() {
     if (!form.title.trim()) {
-      toast.error('Judul proyek wajib diisi.');
+      toast.error('Project title is required.');
       return;
     }
 
@@ -123,11 +129,11 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
     setSaving(false);
 
     if (error) {
-      toast.error(`Gagal menyimpan: ${error.message}`);
+      toast.error(`Save failed: ${error.message}`);
       return;
     }
 
-    toast.success(editing ? 'Proyek diperbarui.' : 'Proyek ditambahkan.');
+    toast.success(editing ? 'Project updated.' : 'Project added.');
     resetForm();
     router.refresh();
   }
@@ -137,12 +143,12 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
     setConfirmId(null);
 
     if (error) {
-      toast.error(`Gagal menghapus: ${error.message}`);
+      toast.error(`Delete failed: ${error.message}`);
       return;
     }
 
     if (form.id === id) resetForm();
-    toast.success('Proyek dihapus.');
+    toast.success('Project deleted.');
     router.refresh();
   }
 
@@ -152,11 +158,11 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
       <div className="admin-card h-fit">
         <div className="admin-section-header">
           <h2 className="font-display text-lg font-bold text-admin-text">
-            {editing ? 'Ubah proyek' : 'Tambah proyek'}
+            {editing ? 'Edit project' : 'Add project'}
           </h2>
           {editing && (
             <button onClick={resetForm} className="font-body text-xs font-medium text-admin-muted hover:text-admin-text">
-              Batal
+              Cancel
             </button>
           )}
         </div>
@@ -164,7 +170,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
         <div className="space-y-4">
           <div>
             <label htmlFor="title" className="admin-label">
-              Judul
+              Title
             </label>
             <input
               id="title"
@@ -177,7 +183,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
 
           <div>
             <label htmlFor="description" className="admin-label">
-              Deskripsi
+              Description
             </label>
             <textarea
               id="description"
@@ -185,13 +191,13 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
               className="admin-input resize-y"
               value={form.description}
               onChange={(e) => set('description', e.target.value)}
-              placeholder="Apa yang proyek ini lakukan dan untuk siapa."
+              placeholder="Describe what the project does and who it is for."
             />
           </div>
 
           <div>
             <label htmlFor="tech" className="admin-label">
-              Teknologi (pisahkan dengan koma)
+              Technologies (comma-separated)
             </label>
             <input
               id="tech"
@@ -200,12 +206,29 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
               onChange={(e) => set('tech_stack', e.target.value)}
               placeholder="Next.js, Supabase, Tailwind CSS"
             />
+            {technologies.length > 0 && (
+              <ul className="mt-2 flex flex-wrap gap-2" aria-label="Technology logo preview">
+                {technologies.map((technology, index) => (
+                  <li
+                    key={`${technology}-${index}`}
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-admin-border px-2 py-1 font-body text-xs text-admin-muted"
+                  >
+                    <SkillLogo
+                      name={technology}
+                      fallback={Code2}
+                      className="h-3.5 w-3.5 shrink-0 text-admin-accent"
+                    />
+                    <span className="break-words">{technology}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="github" className="admin-label">
-                Link GitHub
+                GitHub URL
               </label>
               <input
                 id="github"
@@ -217,7 +240,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
             </div>
             <div>
               <label htmlFor="demo" className="admin-label">
-                Link demo
+                Live demo URL
               </label>
               <input
                 id="demo"
@@ -238,7 +261,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                     key={n}
                     type="button"
                     onClick={() => set('rating', n)}
-                    aria-label={`Beri rating ${n}`}
+                    aria-label={`Rate ${n} out of 5`}
                     aria-pressed={form.rating === n}
                     className="p-0.5 transition hover:scale-110"
                   >
@@ -259,7 +282,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
           </div>
 
           <div>
-            <span className="admin-label">Gambar proyek</span>
+            <span className="admin-label">Project image</span>
             <div className="flex flex-wrap items-center gap-3">
               <input
                 ref={fileRef}
@@ -273,15 +296,15 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                            file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-admin-accent/10 file:px-3 file:py-1.5
                            file:font-body file:text-xs file:font-medium file:text-admin-accent"
               />
-              {uploading && <span className="font-body text-xs text-admin-muted">Mengunggah…</span>}
+              {uploading && <span className="font-body text-xs text-admin-muted">Uploading…</span>}
             </div>
 
             {form.image_url && (
               <div className="mt-3 flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.image_url} alt="Pratinjau" className="h-16 w-28 rounded-lg border border-admin-border object-cover" />
+                <img src={form.image_url} alt="Project image preview" className="h-16 w-28 rounded-lg border border-admin-border object-cover" />
                 <button onClick={() => set('image_url', '')} className="font-body text-xs font-medium text-admin-muted hover:text-admin-danger">
-                  Hapus gambar
+                  Remove image
                 </button>
               </div>
             )}
@@ -290,7 +313,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="order" className="admin-label">
-                Urutan tampil
+                Display order
               </label>
               <input
                 id="order"
@@ -307,26 +330,26 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                 onChange={(e) => set('featured', e.target.checked)}
                 className="h-4 w-4 rounded accent-admin-accent"
               />
-              <span className="font-body text-sm font-medium text-admin-text">Tandai unggulan</span>
+              <span className="font-body text-sm font-medium text-admin-text">Feature this project</span>
             </label>
           </div>
 
           <button onClick={save} disabled={saving || uploading} className="admin-btn-primary w-full">
-            {saving ? 'Menyimpan…' : editing ? 'Simpan perubahan' : 'Tambahkan proyek'}
+            {saving ? 'Saving…' : editing ? 'Save changes' : 'Add project'}
           </button>
         </div>
       </div>
 
-      {/* ---------------- Daftar ---------------- */}
+      {/* ---------------- Project list ---------------- */}
       <div>
         <div className="admin-section-header mb-4">
-          <h2 className="font-display text-lg font-bold text-admin-text">Daftar proyek</h2>
-          <span className="admin-chip">{initialProjects.length} entri</span>
+          <h2 className="font-display text-lg font-bold text-admin-text">Project list</h2>
+          <span className="admin-chip">{initialProjects.length} projects</span>
         </div>
 
         {initialProjects.length === 0 ? (
           <div className="admin-card text-center">
-            <p className="font-body text-sm text-admin-muted">Belum ada proyek. Isi formulir di samping untuk memulai.</p>
+            <p className="font-body text-sm text-admin-muted">No projects yet. Use the form to add your first one.</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -345,7 +368,7 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
                       <h3 className="font-display text-sm font-bold text-admin-text">{p.title}</h3>
                       {p.featured && (
                         <span className="admin-status-warning rounded-full px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide">
-                          Unggulan
+                          Featured
                         </span>
                       )}
                     </div>
@@ -357,20 +380,20 @@ export default function ProjectManager({ initialProjects }: { initialProjects: P
 
                   <div className="flex shrink-0 flex-col gap-1.5">
                     <button onClick={() => startEdit(p)} className="admin-btn-secondary !px-3 !py-1 !text-xs">
-                      Ubah
+                      Edit
                     </button>
                     {confirmId === p.id ? (
                       <div className="flex gap-1.5">
                         <button onClick={() => remove(p.id)} className="admin-btn-danger !px-2 !py-1 !text-[11px]">
-                          Yakin
+                          Confirm
                         </button>
                         <button onClick={() => setConfirmId(null)} className="admin-btn-secondary !px-2 !py-1 !text-[11px]">
-                          Batal
+                          Cancel
                         </button>
                       </div>
                     ) : (
                       <button onClick={() => setConfirmId(p.id)} className="admin-btn-danger !px-3 !py-1 !text-xs">
-                        Hapus
+                        Delete
                       </button>
                     )}
                   </div>

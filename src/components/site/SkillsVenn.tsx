@@ -1,31 +1,63 @@
 "use client";
 
-import type { Profile, Skill } from "@/lib/types";
-import { motion, useReducedMotion } from "framer-motion";
-import { useRef, useState } from "react";
-import { getPublicSkillCategory } from "@/lib/skill-category";
+import type { Profile } from "@/lib/types";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 const positions = ["top", "left", "right", "bottom"] as const;
-const focusAreas = ["Users", "Applications", "Systems", "Operations"];
+const focusAreas = [
+  "Enterprise Apps",
+  "Data & SQL",
+  "Operating Systems",
+  "Web Technologies",
+];
 
 export default function SkillsVenn({
   profile,
-  skills,
 }: {
   profile: Profile;
-  skills: Skill[];
 }) {
   const shouldReduceMotion = useReducedMotion();
-  const [expanded, setExpanded] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const touchPointer = useRef(false);
-  const isOpen = expanded || hovered || focused;
-  const savedCategories = [
-    ...new Set(skills.map(getPublicSkillCategory)),
-  ].slice(0, positions.length);
-  const categories =
-    savedCategories.length > 0 ? savedCategories : focusAreas;
+  const [hasHover, setHasHover] = useState(true);
+  const [suppressPointerHover, setSuppressPointerHover] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const circlesAreOpen = !showAbout && !hasHover;
+  const avatarRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const hoverQuery = window.matchMedia("(hover: hover)");
+    const updateHoverCapability = () => setHasHover(hoverQuery.matches);
+
+    updateHoverCapability();
+    hoverQuery.addEventListener("change", updateHoverCapability);
+    return () =>
+      hoverQuery.removeEventListener("change", updateHoverCapability);
+  }, []);
+
+  useEffect(() => {
+    if (!suppressPointerHover) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const avatarBounds = avatarRef.current?.getBoundingClientRect();
+      if (
+        !avatarBounds ||
+        event.clientX < avatarBounds.left ||
+        event.clientX > avatarBounds.right ||
+        event.clientY < avatarBounds.top ||
+        event.clientY > avatarBounds.bottom
+      ) {
+        setSuppressPointerHover(false);
+      }
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    return () => window.removeEventListener("pointermove", handlePointerMove);
+  }, [suppressPointerHover]);
+
+  const toggleAbout = useCallback(() => {
+    setShowAbout((prev) => !prev);
+  }, []);
+
   const initials = profile.full_name
     .split(" ")
     .filter(Boolean)
@@ -33,115 +65,128 @@ export default function SkillsVenn({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+  const about = profile.bio.trim();
+
+  const animConfig = {
+    ease: [0.16, 1, 0.3, 1] as const,
+    duration: shouldReduceMotion ? 0 : 0.24,
+  };
 
   return (
     <div
       id="skills"
-      className="scroll-mt-24"
-      aria-label="Skills category map"
+      className={`skill-venn-container scroll-mt-24${showAbout ? " skill-venn-container-about-open" : ""}`}
     >
+      {/* Venn diagram */}
       <div
-        className="skill-venn"
-        role="group"
-        aria-label={`Focus categories: ${categories.join(", ")}`}
+        className={`skill-venn${showAbout ? " skill-venn-about-open" : ""}`}
+        data-hover-dismissed={suppressPointerHover ? "true" : undefined}
       >
-        {positions.map((position, index) => (
+        {/* Open the diagram and reveal its labels while the avatar is hovered or focused. */}
+        <AnimatePresence>
+          <>
+            {positions.map((position) => (
+              <motion.div
+                key={position}
+                className={`skill-venn-circle skill-venn-circle-${position}`}
+                initial={false}
+                animate={{
+                  opacity: showAbout ? 0 : circlesAreOpen ? 0.92 : 0.38,
+                  scale: circlesAreOpen ? 1.035 : 0.94,
+                }}
+                transition={{
+                  ...animConfig,
+                }}
+                style={{ transformOrigin: "center", pointerEvents: "none" }}
+                aria-hidden="true"
+              />
+            ))}
+
+            {focusAreas.map((label, index) => (
+              <span
+                key={label}
+                className={`skill-venn-label-anchor skill-venn-label-anchor-${positions[index]}`}
+                aria-hidden={showAbout}
+              >
+                <motion.span
+                  className="skill-venn-label"
+                  initial={false}
+                  animate={{
+                    opacity: circlesAreOpen ? 1 : 0,
+                    y: circlesAreOpen ? 0 : 4,
+                    scale: circlesAreOpen ? 1 : 0.94,
+                  }}
+                  transition={{
+                    ...animConfig,
+                    delay: circlesAreOpen ? index * 0.045 : 0,
+                  }}
+                >
+                  {label}
+                </motion.span>
+              </span>
+            ))}
+
+          </>
+        </AnimatePresence>
+
+        {/* Avatar - click to show About Me */}
+        <div
+          className={`skill-venn-avatar-position${showAbout ? " skill-venn-avatar-position-expanded" : ""}`}
+        >
+          <motion.button
+            type="button"
+            className="skill-venn-avatar"
+            onClick={(event) => {
+              if (showAbout && hasHover && event.detail > 0) {
+                setSuppressPointerHover(true);
+              }
+              toggleAbout();
+            }}
+            ref={avatarRef}
+            aria-expanded={showAbout}
+            aria-label={showAbout ? "Close about me" : "Show about me"}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.16 }}
+          >
+            <div className="skill-venn-photo">
+              {profile.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatar_url} alt={profile.full_name} />
+              ) : (
+                <span className="skill-venn-initials">{initials}</span>
+              )}
+            </div>
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Hint text */}
+      {!showAbout && (
+        <p className="mt-2 text-xs text-ink-faint opacity-60">
+          Click for about
+        </p>
+      )}
+
+      {/* About Section - click avatar to toggle */}
+      <AnimatePresence>
+        {showAbout && about && (
           <motion.div
-            key={position}
-            className={`skill-venn-circle skill-venn-circle-${position}`}
-            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.86 }}
-            animate={
-              shouldReduceMotion
-                ? { opacity: 1, x: 0, y: 0, scale: 1 }
-                : {
-                    opacity: 1,
-                    x: isOpen
-                      ? position === "left"
-                        ? -22
-                        : position === "right"
-                          ? 22
-                          : 0
-                      : 0,
-                    y: isOpen
-                      ? position === "top"
-                        ? -22
-                        : position === "bottom"
-                          ? 22
-                          : 0
-                      : 0,
-                    scale: isOpen ? 1.05 : 1,
-                  }
-            }
+            className="skill-venn-about"
+            role="region"
+            aria-label="About me"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6 }}
             transition={{
-              duration: shouldReduceMotion ? 0 : expanded ? 0.5 : 0.65,
-              delay: shouldReduceMotion ? 0 : expanded ? index * 0.035 : 0.4 + index * 0.1,
-              ease: [0.22, 1, 0.36, 1],
+              duration: shouldReduceMotion ? 0 : 0.28,
+              ease: [0.16, 1, 0.3, 1],
             }}
           >
-            {categories[index] && (
-              <motion.span
-                className={`skill-venn-label skill-venn-label-${position}`}
-                aria-hidden={!isOpen}
-                initial={shouldReduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: isOpen ? 1 : 0 }}
-                transition={{
-                  duration: shouldReduceMotion ? 0 : 0.4,
-                  delay: shouldReduceMotion || !isOpen ? 0 : 0.25 + index * 0.07,
-                }}
-              >
-                {categories[index]}
-              </motion.span>
-            )}
+            <p className="skill-venn-about-text">{about}</p>
           </motion.div>
-        ))}
-        <motion.button
-          type="button"
-          className="skill-venn-avatar"
-          aria-label={
-            isOpen
-              ? "Close focus diagram"
-              : "Open focus diagram around profile photo"
-          }
-          aria-expanded={isOpen}
-          initial={
-            shouldReduceMotion
-              ? false
-              : { opacity: 0, scale: 0.65, x: "-50%", y: "-50%" }
-          }
-          animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
-          transition={{
-            type: "spring",
-            stiffness: 240,
-            damping: 20,
-            delay: shouldReduceMotion ? 0 : 0.7,
-          }}
-          onPointerEnter={(event) => {
-            if (event.pointerType === "mouse") setHovered(true);
-          }}
-          onPointerDown={(event) => {
-            touchPointer.current = event.pointerType === "touch";
-          }}
-          onPointerLeave={(event) => {
-            if (event.pointerType === "mouse") setHovered(false);
-          }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onClick={(event) => {
-            setFocused(false);
-            if (touchPointer.current || event.detail === 0) {
-              setExpanded((current) => !current);
-            }
-            touchPointer.current = false;
-          }}
-        >
-          {profile.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatar_url} alt="" />
-          ) : (
-            initials
-          )}
-        </motion.button>
-      </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

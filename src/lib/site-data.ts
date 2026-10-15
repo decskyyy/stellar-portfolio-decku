@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Experience, Profile, Project, Skill } from "@/lib/types";
+import { normalizePortfolioCopy } from "@/lib/portfolio-copy";
 
 export const fallbackProfile: Profile = {
   id: "fallback",
   full_name: "Aristo Decky Susilo",
   role_title: "IT Support & Application Support",
-  tagline:
-    "Dukungan yang jelas untuk pengguna dan aplikasi yang menopang operasional.",
+  tagline: "",
   bio: "",
   location: null,
   email: null,
@@ -27,7 +27,7 @@ export async function getProfile(): Promise<Profile> {
     .limit(1)
     .maybeSingle();
 
-  return (data as Profile | null) ?? fallbackProfile;
+  return normalizePortfolioCopy((data as Profile | null) ?? fallbackProfile);
 }
 
 export async function getSkills(): Promise<Skill[]> {

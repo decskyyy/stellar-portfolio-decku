@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               A
             </span>
             <div>
-              <p className="font-display text-sm font-bold text-admin-text">Panel admin</p>
+              <p className="font-display text-sm font-bold text-admin-text">Admin panel</p>
               <p className="text-[10px] uppercase tracking-[0.22em] text-admin-muted">Portfolio</p>
             </div>
           </div>
@@ -36,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <p className="truncate font-body text-xs text-admin-muted">{user.email}</p>
             <div className="flex gap-2">
               <Link href="/" target="_blank" className="admin-btn-secondary flex-1 !px-3 !py-1.5 !text-xs">
-                Lihat situs
+                View site
               </Link>
               <SignOutButton />
             </div>
@@ -45,11 +45,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         <div className="min-w-0 flex-1">
           <header className="sticky top-3 z-10 flex items-center justify-between rounded-[22px] border border-admin-border/25 bg-admin-panel/85 px-4 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.06)] backdrop-blur-xl md:hidden">
-            <span className="font-display text-sm font-bold text-admin-text">Panel admin</span>
+            <span className="font-display text-sm font-bold text-admin-text">Admin panel</span>
             <div className="flex gap-2">
               <AdminThemeToggle />
               <Link href="/" target="_blank" className="admin-btn-secondary !px-3 !py-1 !text-xs">
-                Situs
+                Site
               </Link>
               <SignOutButton />
             </div>
