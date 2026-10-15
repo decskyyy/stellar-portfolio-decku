@@ -74,6 +74,7 @@ supabase/schema.sql                Skema, RLS, storage, data awal
 
 - Row Level Security aktif di ketiga tabel: siapa pun boleh **membaca** (halaman publik butuh ini), hanya user terautentikasi yang boleh menulis, mengubah, dan menghapus.
 - `ADMIN_EMAIL` hanya membatasi akses route melalui middleware. Kebijakan RLS tetap menjadi otoritas izin database; pastikan email admin cocok dengan kebijakan pada `supabase/schema.sql`, atau atur `app.admin_email` sesuai petunjuk di file tersebut.
+- Respons aplikasi mengirim header keamanan untuk mencegah MIME sniffing dan framing, membatasi referrer lintas-origin, serta menonaktifkan izin kamera, mikrofon, dan geolokasi.
 - Bucket `portfolio-assets` publik untuk dibaca, upload dan hapus hanya untuk user login.
 - `middleware.ts` mengalihkan setiap kunjungan ke `/admin/*` tanpa sesi valid ke halaman login, sekaligus merefresh token Supabase.
 - Anon key memang aman dipakai di browser — RLS yang menjaga datanya. Jangan pernah menaruh `service_role` key di project ini.
