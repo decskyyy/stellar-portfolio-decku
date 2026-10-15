@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -33,7 +33,8 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit() {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError(null);
     setLoading(true);
 
@@ -64,7 +65,7 @@ function LoginForm() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="admin-label">
             Email
@@ -76,7 +77,6 @@ function LoginForm() {
             className="admin-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="name@example.com"
           />
         </div>
@@ -92,7 +92,6 @@ function LoginForm() {
             className="admin-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="••••••••"
           />
         </div>
@@ -103,10 +102,10 @@ function LoginForm() {
           </p>
         )}
 
-        <button onClick={handleSubmit} disabled={loading || !email || !password} className="admin-btn-primary w-full">
+        <button type="submit" disabled={loading || !email || !password} className="admin-btn-primary w-full">
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
-      </div>
+      </form>
 
       <Link href="/" className="mt-6 block text-center font-body text-sm text-admin-muted transition hover:text-admin-text">
         Back to portfolio
